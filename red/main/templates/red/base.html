@@ -107,7 +107,7 @@
                             <div class="top_single_area d-flex align-items-center">
                                 <!-- Logo Area -->
                                 <div class="top_logo">
-                                    <a href="/"><img src="{% static 'img/core-img/logo.png' %}" alt=""></a>
+                                    <a href="{% url 'index' %}"><img src="{% static 'img/core-img/logo.png' %}" alt=""></a>
                                 </div>
                                 <!-- Cart & Menu Area -->
                                 <div class="header-cart-menu d-flex align-items-center ml-auto">
@@ -134,8 +134,8 @@
                                             </li>
                                             <li class="total">
                                                 <span class="pull-right">Total: $20.00</span>
-                                                <a href="cart" class="btn btn-sm btn-cart">Cart</a>
-                                                <a href="checkout" class="btn btn-sm btn-checkout">Checkout</a>
+                                                <a href="{% url 'cart' %}" class="btn btn-sm btn-cart">Cart</a>
+                                                <a href="{% url 'checkout' %}" class="btn btn-sm btn-checkout">Checkout</a>
                                             </li>
                                         </ul>
                                     </div>
@@ -174,11 +174,11 @@
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" href="#" id="karlDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
                                                 <div class="dropdown-menu" aria-labelledby="karlDropdown">
-                                                    <a class="dropdown-item" href="">Home</a>
-                                                    <a class="dropdown-item" href="shop">Shop</a>
-                                                    <a class="dropdown-item" href="product-details">Product Details</a>
-                                                    <a class="dropdown-item" href="cart">Cart</a>
-                                                    <a class="dropdown-item" href="checkout">Checkout</a>
+                                                    <a class="dropdown-item" href="{% url 'index' %}">Home</a>
+                                                    <a class="dropdown-item" href="{% url 'shop'%}">Shop</a>
+                                                    <a class="dropdown-item" href="{% url 'product-details'%}">Product Details</a>
+                                                    <a class="dropdown-item" href="{% url 'cart'%}">Cart</a>
+                                                    <a class="dropdown-item" href="{% url 'checkout'%}">Checkout</a>
                                                 </div>
                                             </li>
                                             <li class="nav-item"><a class="nav-link" href="#">Dresses</a></li>
@@ -190,7 +190,7 @@
                             </div>
                             <!-- Help Line -->
                             <div class="help-line">
-                                <a href="tel:+346573556778"><i class="ti-headphone-alt"></i> +34 657 3556 778</a>
+                                <a href="tel:{{ phone }}"><i class="ti-headphone-alt"></i>{{ phone_ed }}</a>
                             </div>
                         </div>
                     </div>

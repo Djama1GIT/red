@@ -1,25 +1,23 @@
 {% extends 'red/base.html' %}
 {% load static %}
-{% block title %}RED | Home Page {% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block body %}
 <!-- ****** Top Discount Area Start ****** -->
         <section class="top-discount-area d-md-flex align-items-center">
             <!-- Single Discount Area -->
-            <div class="single-discount-area">
+            <div class="single-discount-area" style="background-color: #b8b8b8; -ms-flex: 0 0 {{ promos_width }}%;flex: 0 0 {{ promos_width }}%; max-width: {{ promos_width }}%;">
                 <h5>Free Shipping &amp; Returns</h5>
                 <h6><a href="#">BUY NOW</a></h6>
             </div>
-            <!-- Single Discount Area -->
-            <div class="single-discount-area">
-                <h5>20% Discount for all dresses</h5>
-                <h6>USE CODE: Colorlib</h6>
-            </div>
-            <!-- Single Discount Area -->
-            <div class="single-discount-area">
-                <h5>20% Discount for students</h5>
-                <h6>USE CODE: Colorlib</h6>
-            </div>
+            {% if promos %}
+                {% for promo in promos %}
+                    <div class="single-discount-area" style="background-color: #{{ promo.color }}; -ms-flex: 0 0 {{ promos_width }}%;flex: 0 0 {{ promos_width }}%; max-width: {{ promos_width }}%;">
+                    <h5>{{ promo.description }}</h5>
+                    <h6>USE CODE: {{ promo.promo }}</h6>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </section>
         <!-- ****** Top Discount Area End ****** -->
 
