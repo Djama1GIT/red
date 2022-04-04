@@ -27,10 +27,72 @@ class Promo(models.Model):
 
 class Product(models.Model):
     name = models.TextField('The product\'s name')
-    gender = models.IntegerField('gender')
+    gender = models.CharField('gender', max_length=8)
     type = models.TextField('type')
-    price = models.IntegerField('price')
+    subtype = models.TextField('subtype')
+    sizes = models.TextField('sizes')
+    price = models.FloatField('price')
+    prev_price = models.FloatField('prev_price')
     color = models.CharField('color', max_length=6)
+    image = models.TextField('image')
 
     def __str__(self):
         return self.name
+
+
+class Fashion(models.Model):
+    name = models.TextField('name')
+    description = models.TextField('description')
+    button_text = models.TextField('button text')
+    link = models.TextField('link')
+    image = models.TextField('image')
+    anim1 = models.CharField('anim1', max_length=16)
+    anim2 = models.CharField('anim2', max_length=16)
+    anim3 = models.CharField('anim3', max_length=16)
+    prods = models.TextField('prods')
+
+    def __str__(self):
+        return self.name
+
+
+class FashionMini(models.Model):
+    name = models.TextField('name')
+    description = models.TextField('description')
+    button_text = models.TextField('button text')
+    link = models.TextField('link')
+    image = models.TextField('image')
+
+    def __str__(self):
+        return self.name
+
+
+class Hot(models.Model):
+    name = models.TextField('name')
+    description = models.TextField('description')
+    button_text = models.TextField('button text')
+    link = models.TextField('link')
+    image = models.TextField('image')
+    prev_price = models.FloatField('prev price')
+    price = models.FloatField('price')
+
+    def __str__(self):
+        return self.name
+
+
+class Review(models.Model):
+    name = models.CharField('name', max_length=64)
+    review = models.TextField('review')
+    image = models.TextField('image')
+    address = models.TextField('The address')
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    type = models.CharField('type', max_length=48)
+    subtype = models.CharField('subtype', max_length=48)
+
+    def __str__(self):
+        return self.type
+
