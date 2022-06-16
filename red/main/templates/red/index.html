@@ -90,7 +90,7 @@
                                 <div class="product-img">
                                     <img src="{{ STATIC_URL }}{{ product.image }}" alt="">
                                     <div class="product-quicview">
-                                        <a href="?id={{ product.id }}"><i class="ti-plus"></i></a>
+                                        <a href="{% url 'product-details' %}?id={{ product.id }}"><i class="ti-plus"></i></a>
                                     </div>
                                 </div>
                                 <!-- Product Description -->
