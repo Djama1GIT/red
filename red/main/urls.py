@@ -1,14 +1,13 @@
-from django.urls import path
-from .views import *
-from .models import Category
-
-shopUrls = list(path("Shop/" + i.type + ("/" + i.subtype if i.subtype != "None" else ""), ShopView,
-                     name="Shop/" + i.type + "/" + i.subtype) for i in Category.objects.all().iterator())
+from django.urls import path, include
+from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView
 
 urlpatterns = [
                   path('', MainView, name='index'),
-                  path('Cart', CartView, name='cart'),
-                  path('Product-Details', ProdDetailsView, name='product-details'),
-                  path('Checkout', CheckoutView, name='checkout'),
-                  path('Shop', ShopView, name='shop'),
-              ] + shopUrls
+                  path('Cart/', CartView, name='cart'),
+                  path('Product-Details/<slug>', ProdDetailsView, name='product-details'),
+                  path('Checkout/', CheckoutView, name='checkout'),
+                  path('Shop/<cat>/<subcat>/', ShopView),
+                  path('Shop/<cat>/', ShopView),
+                  path('Shop/', ShopView, name='shop'),
+                  path('__debug__/', include('debug_toolbar.urls')),
+              ]

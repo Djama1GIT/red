@@ -9,11 +9,11 @@
                     <div class="col-12">
                         <ol class="breadcrumb d-flex align-items-center">
                             <li class="breadcrumb-item"><a href="{% url 'shop' %}">Shop</a></li>
-                            <li class="breadcrumb-item"><a href="{% url 'shop' %}/{{ product.type }}">{{ product.type|replace}}</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'shop' %}{{ product.type }}">{{ product.type|replace}}</a></li>
                             <li class="breadcrumb-item active">{% if product.subtype and product.subtype != 'None'%}{{ product.subtype|replace }}{% endif %}</li>
                         </ol>
                         <!-- btn -->
-                        <a href="{% url 'shop' %}/{{ product.type }}{% if product.subtype and product.subtype != 'None'%}/{{ product.subtype }}{% endif %}" class="backToHome d-block"><i class="fa fa-angle-double-left"></i> Back to Category</a>
+                        <a href="{% url 'shop' %}{{ product.type }}{% if product.subtype and product.subtype != 'None'%}/{{ product.subtype }}{% endif %}" class="backToHome d-block"><i class="fa fa-angle-double-left"></i> Back to Category</a>
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@
 
                             <h4 class="title"><a href="#">{{ product.name }}</a></h4>
 
-                            <h4 class="price">$ {{ product.price }}</h4>
+                            <h4 class="product-price" style="color: #ff084e">{% if product.prev_price > 0.0 %}<s style="color: #9f9f9f">${{ product.prev_price }}</s> {% endif %}${{ product.price }}</h4>
 
                             <p class="available">Available: <span class="text-muted">{% if product.count > 0 %}In{% else %}Out of{% endif %} Stock</span></p>
 
@@ -149,7 +149,7 @@
                                         </div>
                                         <!-- Product Description -->
                                         <div class="product-description">
-                                            <h4 class="product-price">${{ prod.price }}</h4>
+                                            <h4 class="product-price" style="color: #ff084e">{% if prod.prev_price > 0.0 %}<s style="color: #9f9f9f">${{ prod.prev_price }}</s> {% endif %}${{ prod.price }}</h4>
                                             <p>{{ prod.name }}</p>
                                             <!-- Add to Cart -->
                                             <a href="#" class="add-to-cart-btn">ADD TO CART</a>

@@ -40,7 +40,7 @@
                             <a href="#">{{ key|replace }} <span class="arrow"></span></a>
                             <ul class="sub-menu collapse" id="{{ key }}">
                                 {% for elem in value %}
-                                    <li><a href="#">{{ elem|replace }}</a></li>
+                                    <li><a href="{% url 'shop' %}{{ key }}/{{ elem }}">{{ elem|replace }}</a></li>
                                 {% endfor %}
                             </ul>
                         </li>
@@ -127,19 +127,16 @@
                                     <div class="collapse navbar-collapse align-items-start collapse" id="karl-navbar">
                                         <ul class="navbar-nav animated" id="nav">
                                             <li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
+                                            <li class="nav-item"><a class="nav-link" href="{% url 'shop'%}">Shop</a></li>
+                                            <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" href="#" id="karlDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
                                                 <div class="dropdown-menu" aria-labelledby="karlDropdown">
-                                                    <a class="dropdown-item" href="{% url 'index' %}">Home</a>
-                                                    <a class="dropdown-item" href="{% url 'shop'%}">Shop</a>
                                                     <a class="dropdown-item" href="{% url 'product-details'%}">Product Details</a>
                                                     <a class="dropdown-item" href="{% url 'cart'%}">Cart</a>
                                                     <a class="dropdown-item" href="{% url 'checkout'%}">Checkout</a>
                                                 </div>
                                             </li>
-                                            <li class="nav-item"><a class="nav-link" href="#">Dresses</a></li>
-                                            <li class="nav-item"><a class="nav-link" href="#"><span class="karl-level">hot</span> Shoes</a></li>
-                                            <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
                                         </ul>
                                     </div>
                                 </nav>

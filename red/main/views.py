@@ -2,13 +2,14 @@ from django.shortcuts import render
 from django.conf import settings
 from .models import *
 import json
+import math
 
 phone_number = "+79991234567"
 phone_number_ed = "+7(999)123-45-67"
-twitter = "#"
-facebook = "#"
-linkedIn = "#"
-pinterest = "#"
+twitter = "#twitter"
+facebook = "#facebook"
+linkedIn = "#linkedIn"
+pinterest = "#pinterest"
 
 categories = {}
 for i in Category.objects.raw('SELECT * FROM main_category').iterator():
@@ -44,27 +45,24 @@ def CartView(request):
                    'phone_ed': phone_number_ed, 'categories': categories})
 
 
-def ProdDetailsView(request):
-    if 'id' in request.GET:
-        product = Product.objects.raw('SELECT * FROM main_product WHERE id = ' + str(request.GET['id']))[0]
-        product.sizes = json.loads(product.sizes)
-        print(product.sizes)
-        product.count = 0
-        try:
-            for k, v in product.sizes.items():
-                product.count += v
-            product.image = json.loads(product.image)
-            # BETTER USE JSON!!!!!!!!!!!!!!!!!!!!!!!
-            product.related = Product.objects.raw(
-                'SELECT * FROM main_product WHERE (type = "' + product.type +
-                '" and subtype = "' + product.subtype + '" and id != ' + str(product.id) + ') LIMIT 5')
-            for prod in product.related:
-                for k, v in json.loads(prod.image).items():
-                    prod.image = k + "/" + v[0]
-        except Exception as exc:
-            return render(request, 'red/500.html')
-    else:
-        return render(request, 'red/404.html')
+def ProdDetailsView(request, slug):
+    #how to identify id?
+    product = Product.objects.raw('SELECT * FROM main_product WHERE slug = ' + slug)[0]
+    product.sizes = json.loads(product.sizes)
+    product.count = 0
+    try:
+        for k, v in product.sizes.items():
+            product.count += v
+        product.image = json.loads(product.image)
+        # BETTER USE JSON!!!!!!!!!!!!!!!!!!!!!!!
+        product.related = Product.objects.raw(
+            'SELECT id, image, price, name FROM main_product WHERE (type = "' + product.type +
+            '" and subtype = "' + product.subtype + '" and id != ' + str(product.id) + ') LIMIT 5')
+        for prod in product.related:
+            for k, v in json.loads(prod.image).items():
+                prod.image = k + "/" + v[0]
+    except Exception as exc:
+        return render(request, 'red/500.html')
     return render(request, 'red/product-details.html',
                   {'title': 'RED | Product Details', 'phone': phone_number, 'product': product,
                    'phone_ed': phone_number_ed, 'categories': categories, 'STATIC_URL': settings.STATIC_URL})
@@ -76,23 +74,49 @@ def CheckoutView(request):
                    'categories': categories})
 
 
-def ShopView(request):
-    types = request.path.split('/')
-    if len(types) == 2:
-        types += [None, None]
-    elif len(types) == 3:
-        types += [None]
+def ShopView(request, cat=None, subcat=None):
+    where = ""
+    if cat:
+        where += f"WHERE type = '{cat}'"
+        if subcat:
+            where += f" and subtype = '{subcat}' "
+    request_where = where[:]
+    if 'size' in request.GET:
+        if "WHERE " in where:
+            where += " and "
+        else:
+            where += "WHERE "
+        where += f'(sizes like \'%"{request.GET["size"]}"%\' or sizes like "%\'{request.GET["size"]}\'%")'
+    if 'color' in request.GET:
+        if "WHERE " in where:
+            where += " and "
+        else:
+            where += "WHERE "
+        where += f'color = "{request.GET["color"]}"'
     colors = {}
     colors_tmp = Product.objects.raw(
-        "SELECT distinct color, count(color) as count, id FROM main_product group by color")  # не работает distinct, возможно из-за lite sql
+        f"SELECT distinct color, count(color) as count, id FROM main_product {request_where} group by color")
     for i in colors_tmp:
         colors[i.color] = i.count
     sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-    max_price = Product.objects.raw("SELECT max(price) as max, id from main_product")[0].max
+    max_price = Product.objects.raw(f"SELECT max(price) as max, id from main_product {request_where}")[0].max
+    products_on_page = 9
+    pages = math.ceil(
+        Product.objects.raw(f"SELECT id, count(*) as count from main_product {where}")[0].count / products_on_page)
+    active_page = int(request.GET['page']) if 'page' in request.GET else 1
+    if active_page > pages:
+        active_page = 1
+    products = Product.objects.raw(
+        f"SELECT id, name, price, image, type, subtype from main_product {where}LIMIT "
+        f"{active_page * products_on_page - products_on_page},{products_on_page}")
+    for prod in products:
+        for k, v in json.loads(prod.image).items():
+            prod.image = k + "/" + v[0]
     return render(request, 'red/shop.html',
-                  {'title': 'RED | Shop', 'phone': phone_number, 'phone_ed': phone_number_ed, 'type': types[2],
-                   'subtype': types[3], 'categories': categories, 'max_price': max_price,
-                   'colors': colors, "sizes": sizes})
+                  {'title': 'RED | Shop', 'phone': phone_number, 'phone_ed': phone_number_ed, 'type': cat,
+                   'subtype': subcat, 'categories': categories, 'max_price': max_price,
+                   'colors': colors, 'sizes': sizes, 'pages': range(1, pages + 1), 'active_page': active_page,
+                   'products': products, 'STATIC_URL': settings.STATIC_URL})
 
 
 def err404(request, exception):

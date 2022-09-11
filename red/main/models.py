@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 
 class User(models.Model):
@@ -27,6 +28,7 @@ class Promo(models.Model):
 
 class Product(models.Model):
     name = models.TextField('The product\'s name')
+    slug = models.SlugField(default='', null=False)
     gender = models.CharField('gender', max_length=8)
     type = models.TextField('type')
     subtype = models.TextField('subtype')
@@ -35,6 +37,10 @@ class Product(models.Model):
     prev_price = models.FloatField('prev_price')
     color = models.CharField('color', max_length=6)
     image = models.TextField('image')
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Product, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -95,4 +101,3 @@ class Category(models.Model):
 
     def __str__(self):
         return self.type
-
