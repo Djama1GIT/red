@@ -1,0 +1,16 @@
+{% extends 'red/base.html' %}
+{% load static repl %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<div class="container">
+    <h1>Вы успешно подписались на новости</h1>
+    <br>
+    <h3>Эта страница закроется автоматически через 2 сек..</h3>
+</div>
+<script>
+    setTimeout(function(){
+    window.location="{% url 'index' %}";
+    }, 2000);
+</script>
+
+{% endblock %}

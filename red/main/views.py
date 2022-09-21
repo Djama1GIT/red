@@ -78,6 +78,17 @@ def CheckoutView(request):
                    'categories': categories})
 
 
+def SubsribeView(request):
+    if "mail" in request.GET:
+        if request.GET["mail"].strip() != "":
+            if len(MailingList.objects.filter(mail=request.GET["mail"])) == 0:
+                MailingList(mail=request.GET["mail"]).save()
+
+    return render(request, 'red/subscribe.html',
+                  {'title': 'RED | Subscribe | Redirection..', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'categories': categories})
+
+
 def ShopView(request, cat=None, subcat=None):
     where = ""
     if cat:

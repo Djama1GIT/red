@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView
+from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView, SubsribeView
 
 urlpatterns = [
                   path('', MainView, name='index'),
@@ -10,5 +10,6 @@ urlpatterns = [
                   path('Shop/<cat>/<subcat>/', ShopView),
                   path('Shop/<cat>/', ShopView),
                   path('Shop/', ShopView, name='shop'),
+                  path('Subscribe/', SubsribeView, name='subscribe'),
                   path('__debug__/', include('debug_toolbar.urls')),
               ]

@@ -110,3 +110,10 @@ class Category(models.Model):
 
     def __str__(self):
         return self.type
+
+
+class MailingList(models.Model):
+    mail = models.CharField('mail', max_length=48)
+
+    def __str__(self):
+        return self.mail

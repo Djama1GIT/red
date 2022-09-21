@@ -201,7 +201,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                                 <h6>Subscribe to our newsletter</h6>
                             </div>
                             <div class="subscribtion_form">
-                                <form action="#" method="post">
+                                <form action="{% url 'subscribe' %}" method="get">
                                     <input type="email" name="mail" class="mail" placeholder="Your email here">
                                     <button type="submit" class="submit">Subscribe</button>
                                 </form>
