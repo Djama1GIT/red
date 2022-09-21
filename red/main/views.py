@@ -4,12 +4,12 @@ from .models import *
 import json
 import math
 
-phone_number = "+79991234567"
-phone_number_ed = "+7(999)123-45-67"
-twitter = "#twitter"
-facebook = "#facebook"
-linkedIn = "#linkedIn"
-pinterest = "#pinterest"
+phone_number = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "Phone number"')[0].data
+phone_number_ed = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "Phone number ed"')[0].data
+twitter = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "Twitter"')[0].data
+facebook = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "Facebook"')[0].data
+linkedIn = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "LinkedIn"')[0].data
+pinterest = SocialMedia.objects.raw('SELECT * FROM main_socialmedia where social = "Pinterest"')[0].data
 
 categories = {}
 for i in Category.objects.raw('SELECT * FROM main_category').iterator():

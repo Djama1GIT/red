@@ -14,6 +14,14 @@ class User(models.Model):
         return self.login
 
 
+class SocialMedia(models.Model):
+    social = models.CharField('Social', max_length=32)
+    data = models.TextField('Data')
+
+    def __str__(self):
+        return self.social
+
+
 class Promo(models.Model):
     promo = models.CharField('promo-code', max_length=16)
     description = models.TextField('Description')
