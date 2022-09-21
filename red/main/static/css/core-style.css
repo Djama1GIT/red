@@ -1522,6 +1522,14 @@ img {
     background-color: #d7d7d7;
 }
 
+.widget.color .widget-desc ul li.white a {
+    background-color: #f7f7f7;
+}
+
+.widget.color .widget-desc ul li.blue a {
+    background-color: #4626ff;
+}
+
 .widget.color .widget-desc ul li.red a {
     background-color: #fd4f4f;
 }

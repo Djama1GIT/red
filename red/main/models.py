@@ -39,7 +39,8 @@ class Product(models.Model):
     image = models.TextField('image')
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+        self.name = self.name.title()
+        self.slug = slugify(self.name) + "-" + str(self.id)
         super(Product, self).save(*args, **kwargs)
 
     def __str__(self):

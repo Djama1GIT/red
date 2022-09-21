@@ -45,9 +45,13 @@ def CartView(request):
                    'phone_ed': phone_number_ed, 'categories': categories})
 
 
-def ProdDetailsView(request, slug):
-    #how to identify id?
-    product = Product.objects.raw('SELECT * FROM main_product WHERE slug = ' + slug)[0]
+def ProdDetailsView(request, slug=None):
+    if slug == None:
+        return err404(request, 404)
+    try:
+        product = Product.objects.raw('SELECT * FROM main_product WHERE slug = "' + slug + '"')[0]
+    except Exception:
+        return err404(request, 404)
     product.sizes = json.loads(product.sizes)
     product.count = 0
     try:
@@ -57,7 +61,7 @@ def ProdDetailsView(request, slug):
         # BETTER USE JSON!!!!!!!!!!!!!!!!!!!!!!!
         product.related = Product.objects.raw(
             'SELECT id, image, price, name FROM main_product WHERE (type = "' + product.type +
-            '" and subtype = "' + product.subtype + '" and id != ' + str(product.id) + ') LIMIT 5')
+            '" and subtype = "' + product.subtype + '" and slug != "' + product.slug + '") LIMIT 5')
         for prod in product.related:
             for k, v in json.loads(prod.image).items():
                 prod.image = k + "/" + v[0]
@@ -120,4 +124,8 @@ def ShopView(request, cat=None, subcat=None):
 
 
 def err404(request, exception):
-    return render(request, 'red/404.html', status=404)
+    return render(request, 'red/404.html',
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories}, status=404
+                  )
