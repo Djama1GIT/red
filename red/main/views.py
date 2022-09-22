@@ -2,7 +2,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from .models import *
-from .forms import EmailPostForm
+from .forms import EmailPostForm, LogInForm, SignUpForm
 import json
 import math
 
@@ -77,6 +77,32 @@ def ProdDetailsView(request, slug=None):
 def CheckoutView(request):
     return render(request, 'red/checkout.html',
                   {'title': 'RED | Checkout Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'categories': categories})
+
+
+def LoginView(request):
+    if request.method == 'POST':
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            ...
+        return HttpResponseRedirect('/')
+    else:
+        form = LogInForm()
+    return render(request, 'red/login.html',
+                  {'form': form, 'title': 'RED | Log In', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'categories': categories})
+
+
+def SignUpView(request):
+    if request.method == 'POST':
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            ...
+        return HttpResponseRedirect('/')
+    else:
+        form = SignUpForm()
+    return render(request, 'red/signup.html',
+                  {'form': form, 'title': 'RED | Sign Up', 'phone': phone_number, 'phone_ed': phone_number_ed,
                    'categories': categories})
 
 
