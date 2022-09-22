@@ -67,34 +67,40 @@
                                 </div>
                                 <!-- Cart & Menu Area -->
                                 <div class="header-cart-menu d-flex align-items-center ml-auto">
+                                    {% if user.authenticated %}
                                     <!-- Cart Area -->
-                                    <div class="cart">
-                                        <a href="#" id="header-cart-btn" target="_blank"><span class="cart_quantity">2</span> <i class="ti-bag"></i> Your Bag $20</a>
-                                        <!-- Cart List Area Start -->
-                                        <ul class="cart-list">
-                                            <li>
-                                                <a href="#" class="image"><img src="{% static 'img/product-img/product-10.jpg' %}" class="cart-thumb" alt=""></a>
-                                                <div class="cart-item-desc">
-                                                    <h6><a href="#">Women's Fashion</a></h6>
-                                                    <p>1x - <span class="price">$10</span></p>
-                                                </div>
-                                                <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
-                                            </li>
-                                            <li>
-                                                <a href="#" class="image"><img src="{% static 'img/product-img/product-11.jpg' %}" class="cart-thumb" alt=""></a>
-                                                <div class="cart-item-desc">
-                                                    <h6><a href="#">Women's Fashion</a></h6>
-                                                    <p>1x - <span class="price">$10</span></p>
-                                                </div>
-                                                <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
-                                            </li>
-                                            <li class="total">
-                                                <span class="pull-right">Total: $20.00</span>
-                                                <a href="{% url 'cart' %}" class="btn btn-sm btn-cart">Cart</a>
-                                                <a href="{% url 'checkout' %}" class="btn btn-sm btn-checkout">Checkout</a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                        <div class="cart">
+                                            <a href="#" id="header-cart-btn" target="_blank"><span class="cart_quantity">2</span> <i class="ti-bag"></i> Your Bag $20</a>
+                                            <!-- Cart List Area Start -->
+                                            <ul class="cart-list">
+                                                <li>
+                                                    <a href="#" class="image"><img src="{% static 'img/product-img/product-10.jpg' %}" class="cart-thumb" alt=""></a>
+                                                    <div class="cart-item-desc">
+                                                        <h6><a href="#">Women's Fashion</a></h6>
+                                                        <p>1x - <span class="price">$10</span></p>
+                                                    </div>
+                                                    <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="image"><img src="{% static 'img/product-img/product-11.jpg' %}" class="cart-thumb" alt=""></a>
+                                                    <div class="cart-item-desc">
+                                                        <h6><a href="#">Women's Fashion</a></h6>
+                                                        <p>1x - <span class="price">$10</span></p>
+                                                    </div>
+                                                    <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
+                                                </li>
+                                                <li class="total">
+                                                    <span class="pull-right">Total: $20.00</span>
+                                                    <a href="{% url 'cart' %}" class="btn btn-sm btn-cart">Cart</a>
+                                                    <a href="{% url 'checkout' %}" class="btn btn-sm btn-checkout">Checkout</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    {% else %}
+                                        <div>
+                                            <h5>Log In</h5>
+                                        </div>
+                                    {% endif %}
                                     <div class="header-right-side-menu ml-15">
                                         <a href="#" id="sideMenuBtn"><i class="ti-menu" aria-hidden="true"></i></a>
                                     </div>
@@ -128,7 +134,7 @@
                                         <ul class="navbar-nav animated" id="nav">
                                             <li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
                                             <li class="nav-item"><a class="nav-link" href="{% url 'shop'%}">Shop</a></li>
-                                            <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                                            <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" href="#" id="karlDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
                                                 <div class="dropdown-menu" aria-labelledby="karlDropdown">
@@ -179,7 +185,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
                                 <li><a href="#">Blog</a></li>
                                 <li><a href="#">Faq</a></li>
                                 <li><a href="#">Returns</a></li>
-                                <li><a href="#">Contact</a></li>
+                                <li><a href="{% url 'contact' %}">Contact</a></li>
                             </ul>
                         </div>
                     </div>

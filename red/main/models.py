@@ -117,3 +117,13 @@ class MailingList(models.Model):
 
     def __str__(self):
         return self.mail
+
+
+class Comment(models.Model):
+    name = models.TextField('name')
+    lastname = models.TextField('lastname')
+    mail = models.TextField('email')
+    comment = models.TextField('comment')
+
+    def __str__(self):
+        return self.mail

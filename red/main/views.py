@@ -1,6 +1,8 @@
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from .models import *
+from .forms import EmailPostForm
 import json
 import math
 
@@ -27,7 +29,7 @@ def MainView(request):
     hot = Hot.objects.last()
     reviews = Review.objects.all()
     promos_width = str(100 / (promos.count() + 1))
-    products = Product.objects.raw('SELECT * FROM main_product LIMIT 6')
+    products = Product.objects.raw('SELECT * FROM main_product LIMIT 6')[::-1]
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
@@ -132,6 +134,21 @@ def ShopView(request, cat=None, subcat=None):
                    'subtype': subcat, 'categories': categories, 'max_price': max_price,
                    'colors': colors, 'sizes': sizes, 'pages': range(1, pages + 1), 'active_page': active_page,
                    'products': products, 'STATIC_URL': settings.STATIC_URL})
+
+
+def ContactView(request):
+    if request.method == 'POST':
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            Comment(name=form.cleaned_data["name"], lastname=form.cleaned_data["lastname"],
+                    mail=form.cleaned_data["email"], comment=form.cleaned_data["comment"]).save()
+        return HttpResponseRedirect('/')
+    else:
+        form = EmailPostForm()
+    return render(request, 'red/contact.html',
+                  {'form': form, 'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
 def err404(request, exception):

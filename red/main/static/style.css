@@ -11,3 +11,49 @@
     /* -------------------------------------------------
     ============ PLACE YOUR CUSTOM CSS HERE ============
     ------------------------------------------------- */
+.contact{
+		padding: 4%;
+}
+.contcol{
+    background: #ff084e;
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+.contact-info{
+    margin-top:10%;
+}
+.contact-info img{
+    margin-bottom: 15%;
+}
+.contact-info h2{
+    margin-bottom: 10%;
+    color: #fff;
+}
+.contact-info h4{
+    color: #fff;
+}
+.contact-form label{
+    font-weight:600;
+}
+.contact-form button{
+    background: #ff084e;
+    color: #fff;
+    font-weight: 600;
+    width: 25%;
+}
+.contact-form button:focus{
+    box-shadow:none;
+}
+#id_name, #id_lastname, #id_email, #id_comment{
+    display:block;
+    width:100%;
+    padding:.375rem .75rem;
+    font-size:1rem;
+    line-height:1.5;
+    color:#495057;
+    background-color:#fff;
+    background-clip:padding-box;
+    border:1px solid #ced4da;
+    border-radius:.25rem;
+    transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out
+}
