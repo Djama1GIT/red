@@ -1,0 +1,66 @@
+{% extends 'red/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+{% if purchases %}
+    <!-- ****** Purchases Area Start ****** -->
+            <div class="cart_area section_padding_100 clearfix">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="cart-table clearfix">
+                                <table class="table table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th>Delivering</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for i in purchases %}
+                                            <tr>
+                                                <td class="cart_product_img d-flex align-items-center">
+                                                    <a href="{% url 'product-details' %}{{ i.slug }}"><img src="{{ STATIC_URL}}{{ i.image }}" alt="Product"></a>
+                                                    <h6>{{ i.product }} ({{ i.size }}) | Purchased {{ i.datetime }}</h6>
+                                                </td>
+                                                <td class="price"><span>${{ i.price }}</span></td>
+                                                <td class="qty">
+                                                    <div class="quantity">
+                                                        <input type="number" class="qty-text" id="qty" name="quantity" value="1" disabled>
+                                                    </div>
+                                                </td>
+                                                <td class="total_price"><span>${{ i.price }}</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="cart-footer d-flex mt-30">
+                                <div class="back-to-shop w-50">
+                                    <a href="{% url 'shop' %}">Continue shoping</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ****** Purchases Area End ****** -->
+{% else %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-center" style="margin-bottom:30%">
+                <h4>You haven't bought anything yet!</h4>
+                <a href="{% url 'shop' %}"><h1 class="a-red">Go shopping!</h1></a>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

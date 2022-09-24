@@ -5,8 +5,9 @@ from django.db.models import Q
 from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
 from django.contrib.auth.models import User as user
-from .models import *
-from .forms import EmailPostForm, SignUpForm, AddToCartForm
+from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
+    Comment, Purchase
+from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm
 
 import json
 import math
@@ -33,15 +34,15 @@ def cart(request):
     cat = User.objects.filter(user=request.user.id)[0].cart
     cat = json.loads(cat)
     _cart_ = {}
-    _cart_["sum"] = 0
+    cart_sum = 0
     for k, v in cat.items():
         product = Product.objects.filter(id=int(k))[0]
         for z, a in json.loads(product.image).items():
             product.image = z + "/" + a[0]
-        _cart_["sum"] += product.price
+        cart_sum += product.price
         _cart_[product.name] = [product.price, product.image, product.slug, v]
-    _cart_["sum"] = float('{:.2f}'.format(_cart_["sum"]))
-    return _cart_
+    cart_sum = float('{:.2f}'.format(cart_sum))
+    return [_cart_, cart_sum]
 
 
 class myLoginView(auth_views.LoginView):
@@ -175,7 +176,7 @@ def ProdDetailsView(request, slug=None):
             update = load.update({str(product.id): list(product.sizes.keys())[int(data['size'])]})
             dump = json.dumps(load)
             User.objects.filter(user=request.user.id).update(
-               cart=dump)
+                cart=dump)
             HttpResponseRedirect(request.get_full_path())
     return render(request, 'red/product-details.html',
                   {'form': form, 'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
@@ -185,8 +186,31 @@ def ProdDetailsView(request, slug=None):
 
 
 def CheckoutView(request):
+    form = CheckoutForm(request.POST)
+    cat = cart(request)
+    if cat[0]:
+        if form.is_valid():
+            data = form.cleaned_data
+            for k, v in cat[0].items():
+                Purchase(user_login=request.user.username, user=request.user, first_name=data['first_name'],
+                         last_name=data['last_name'], country=data['country'], address=data['address'],
+                         postcode=data['postcode'], city=data['city'], province=data['province'],
+                         product=k, size=v[3], price=v[0], slug=v[2], image=v[1]).save()
+            User.objects.filter(user=request.user.id).update(cart="{}")
+            return HttpResponseRedirect('/Shop/')
+    else:
+        return HttpResponseRedirect('/Purchases/')
     return render(request, 'red/checkout.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'form': form, 'cart': cat, 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
+
+
+def PurchasesView(request):
+    purchases = Purchase.objects.filter(user=request.user.id)[::-1]
+    return render(request, 'red/purchases.html',
+                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})

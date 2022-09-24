@@ -3,7 +3,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block body %}
-{% if cart.keys|length > 1 %}
+{% if cart.0.keys|length > 0 %}
     <!-- ****** Cart Area Start ****** -->
             <div class="cart_area section_padding_100 clearfix">
                 <div class="container">
@@ -21,22 +21,20 @@
                                     </thead>
                                     <tbody>
                                         {% if cart %}
-                                            {% for k, v in cart.items %}
-                                                {% if k != "sum" %}
-                                                    <tr>
-                                                        <td class="cart_product_img d-flex align-items-center">
-                                                            <a href="{% url 'product-details' %}{{ v.2 }}"><img src="{{ STATIC_URL}}{{ v.1 }}" alt="Product"></a>
-                                                            <h6>{{ k }} ({{ v.3 }})</h6>
-                                                        </td>
-                                                        <td class="price"><span>${{ v.0 }}</span></td>
-                                                        <td class="qty">
-                                                            <div class="quantity">
-                                                                <input type="number" class="qty-text" id="qty" name="quantity" value="1" disabled>
-                                                            </div>
-                                                        </td>
-                                                        <td class="total_price"><span>${{ v.0 }}</span></td>
-                                                    </tr>
-                                                {% endif %}
+                                            {% for k, v in cart.0.items %}
+                                                <tr>
+                                                    <td class="cart_product_img d-flex align-items-center">
+                                                        <a href="{% url 'product-details' %}{{ v.2 }}"><img src="{{ STATIC_URL}}{{ v.1 }}" alt="Product"></a>
+                                                        <h6>{{ k }} ({{ v.3 }})</h6>
+                                                    </td>
+                                                    <td class="price"><span>${{ v.0 }}</span></td>
+                                                    <td class="qty">
+                                                        <div class="quantity">
+                                                            <input type="number" class="qty-text" id="qty" name="quantity" value="1" disabled>
+                                                        </div>
+                                                    </td>
+                                                    <td class="total_price"><span>${{ v.0 }}</span></td>
+                                                </tr>
                                             {% endfor %}
                                         {% endif %}
                                     </tbody>
@@ -90,9 +88,9 @@
                                 </div>
 
                                 <ul class="cart-total-chart">
-                                    <li><span>Subtotal</span> <span>${{ cart.sum }}</span></li>
+                                    <li><span>Subtotal</span> <span>${{ cart.1 }}</span></li>
                                     <li><span>Shipping</span> <span>Free</span></li>
-                                    <li><span><strong>Total</strong></span> <span><strong>${{ cart.sum }}</strong></span></li>
+                                    <li><span><strong>Total</strong></span> <span><strong>${{ cart.1 }}</strong></span></li>
                                 </ul>
                                 <a href="{% url 'checkout' %}" class="btn karl-checkout-btn">Proceed to checkout</a>
                             </div>
@@ -106,8 +104,8 @@
     <div class="row">
         <div class="col-md-12">
             <div class="text-center" style="margin-bottom:30%">
-                <h4>Вы еще не добавили ни один товар в корзину!</h4>
-                <a href="{% url 'shop' %}"><h1 class="a-red">Вперед за покупками!</h1></a>
+                <h4>You haven't added any products to the cart yet!</h4>
+                <a href="{% url 'shop' %}"><h1 class="a-red">Go shopping!</h1></a>
 
             </div>
         </div>

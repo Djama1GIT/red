@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.contrib.auth import views
 from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView, SubsribeView, ContactView, \
-    myLoginView, SignUpView, myLogoutView
+    myLoginView, SignUpView, myLogoutView, PurchasesView
 
 urlpatterns = [
                   path('', MainView, name='index'),
@@ -12,6 +12,7 @@ urlpatterns = [
                   path('Product-Details/<slug>', ProdDetailsView, name='product-details'),
                   path('Product-Details/', ProdDetailsView, name='product-details'),
                   path('Checkout/', CheckoutView, name='checkout'),
+                  path('Purchases/', PurchasesView, name='purchases'),
                   path('Shop/<cat>/<subcat>/', ShopView),
                   path('Shop/<cat>/', ShopView),
                   path('Shop/', ShopView, name='shop'),

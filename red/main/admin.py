@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, Comment
+from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
+    Comment, Purchase
 
 admin.site.register(User)
 admin.site.register(Promo)
@@ -12,3 +13,4 @@ admin.site.register(Category)
 admin.site.register(SocialMedia)
 admin.site.register(MailingList)
 admin.site.register(Comment)
+admin.site.register(Purchase)

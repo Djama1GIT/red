@@ -15,6 +15,27 @@ class User(models.Model):
         return self.user_login
 
 
+class Purchase(models.Model):
+    user_login = models.CharField('username', max_length=48)
+    user = models.ForeignKey(get_user_model(), db_column="user_id", on_delete=models.CASCADE)
+    first_name = models.CharField('first name', max_length=48)
+    last_name = models.CharField('last name', max_length=48)
+    country = models.CharField('country', max_length=48)
+    address = models.CharField('address', max_length=48)
+    postcode = models.CharField('postcode', max_length=48)
+    city = models.CharField('city', max_length=48)
+    province = models.CharField('province', max_length=48)
+    product = models.CharField('product', max_length=128)
+    slug = models.SlugField('slug', max_length=128)
+    size = models.CharField('size', max_length=6)
+    image = models.TextField('image')
+    price = models.FloatField('price')
+    datetime = models.DateTimeField('date', auto_now_add=True, blank=True)
+
+    def __str__(self):
+        return str(self.user_login) + ": " + str(self.product)
+
+
 class SocialMedia(models.Model):
     social = models.CharField('Social', max_length=32)
     data = models.TextField('Data')

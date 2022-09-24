@@ -142,3 +142,11 @@
     color: #fff;
     font-size: 13px;
 }
+
+#id_first_name, #id_last_name, #id_country, #id_address, #id_postcode, #id_city, #id_province {
+    width: 100%;
+    height: 52px;
+    border: none;
+    background-color: #f4f2f8;
+    border-radius: 0;
+}

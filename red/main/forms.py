@@ -23,3 +23,13 @@ class SignUpForm(forms.Form):
                              min_length=8, max_length=48)
     repeat_passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password'}),
                                     min_length=8, max_length=48)
+
+
+class CheckoutForm(forms.Form):
+    first_name = forms.CharField(widget=forms.TextInput(), max_length=48)
+    last_name = forms.CharField(widget=forms.TextInput(), max_length=48)
+    country = forms.CharField(widget=forms.TextInput(), max_length=48)
+    address = forms.CharField(widget=forms.TextInput(), max_length=48)
+    postcode = forms.CharField(widget=forms.TextInput(), max_length=48)
+    city = forms.CharField(widget=forms.TextInput(), max_length=48)
+    province = forms.CharField(widget=forms.TextInput(), max_length=48)
