@@ -3,9 +3,12 @@ from django.shortcuts import render
 from django.conf import settings
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import views as auth_views
+from django.views import View
+from django.contrib.auth import views as auth_views, authenticate
+from django.contrib.auth.models import User as user
 from .models import *
-from .forms import EmailPostForm, LogInForm, SignUpForm
+from .forms import EmailPostForm, SignUpForm
+
 import json
 import math
 
@@ -23,6 +26,74 @@ for i in Category.objects.order_by('id').iterator():
             categories[i.type] += [i.subtype]
     else:
         categories[i.type] = []
+
+
+class myLoginView(auth_views.LoginView):
+    template_name = "registration/login.html"
+    extra_context = {'title': 'RED | Login', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                     'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                     'pinterest': pinterest, 'categories': categories}
+
+
+class myLogoutView(auth_views.LogoutView):
+    next_page = 'index'
+
+
+class SignUpView(View):
+    def get(self, request):
+        form = SignUpForm()
+        return render(request, 'registration/signup.html',
+                      {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
+                       'linkedIn': linkedIn,
+                       'pinterest': pinterest, 'categories': categories, 'form': form})
+
+    def post(self, request):
+        global form
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            keys = data.keys()
+            if "login" in keys and "passwd" in keys and "repeat_passwd" in keys and "mail" in keys and "phone" in keys:
+                if not user.objects.filter(username=data["login"]):
+                    if self.check_username(data["login"]) and self.check_password(data["passwd"], data["repeat_passwd"],
+                                                                                  data["login"]):
+                        user.objects.create_user(username=data["login"],
+                                                 email=data["mail"],
+                                                 password=data["passwd"])
+                        up_user = authenticate(request, username=data["login"], password=data["passwd"])
+                        print(up_user)
+                        User(user_login=up_user, user=up_user, phone=data["phone"]).save()
+                        if up_user is not None:
+                            return HttpResponseRedirect('/Login/')
+                        else:
+                            raise Exception('Database error')
+        else:
+            print(form.cleaned_data, form.errors)
+        return render(request, 'registration/signup.html',
+                      {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
+                       'linkedIn': linkedIn,
+                       'pinterest': pinterest, 'categories': categories, 'form': form})
+
+    def check_username(self, username: str):
+        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@.+-_"
+        for symbol in username:
+            if symbol in alphabet:
+                continue
+            else:
+                form.add_error('login', 'Invalid username')
+                return False
+        else:
+            return True
+
+    def check_password(self, password: str, repeat_password: str, username: str):
+        if password == repeat_password and len(password) >= 8 and (
+                not password.isnumeric()) and username != password:
+            return True
+        else:
+            form.add_error('passwd', 'Invalid password')
+            return False
 
 
 def MainView(request):
@@ -79,35 +150,6 @@ def ProdDetailsView(request, slug=None):
 
 def CheckoutView(request):
     return render(request, 'red/checkout.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
-
-
-class myLoginView(auth_views.LoginView):
-    template_name = "registration/login.html"
-    extra_context = {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                     'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                     'pinterest': pinterest, 'categories': categories}
-
-
-def SignUpView(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            keys = data.keys()
-            if "login" in keys and "passwd" in keys and "repeat_passwd" in keys and "mail" in keys and "phone" in keys:
-                if data["passwd"] == data["repeat_passwd"]:
-                    if not User.objects.filter(login=data["login"]):
-                        # change to default django methods
-                        User(login=data["login"], password=make_password(data["passwd"]), phone=data["phone"],
-                             mail=data["mail"]).save()
-        else:
-            print(form.cleaned_data, form.errors)
-    else:
-        form = SignUpForm()
-    return render(request, 'red/signup.html',
                   {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
@@ -179,7 +221,7 @@ def ContactView(request):
 
 
 def err404(request, exception):
-    return render(request, 'red/404.html',
+    return render(request, 'errors/404.html',
                   {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception
@@ -187,7 +229,7 @@ def err404(request, exception):
 
 
 def err500(request, exception):
-    return render(request, 'red/500.html',
+    return render(request, 'errors/500.html',
                   {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception

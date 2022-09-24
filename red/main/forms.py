@@ -8,15 +8,12 @@ class EmailPostForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea())
 
 
-class LogInForm(forms.Form):
-    login = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Login'}), max_length=48)
-    passwd = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Password'}), max_length=48)
-
-
 class SignUpForm(forms.Form):
     login = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Login'}), max_length=48)
     mail = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Enter Email'}), max_length=56)
-    phone = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Enter Phone number'}))
-    passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter Password'}), max_length=48)
+    phone = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Enter Phone number'}),
+                               min_value=1000000000, max_value=9999999999)
+    passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter Password'}),
+                             min_length=8, max_length=48)
     repeat_passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password'}),
-                                    max_length=48)
+                                    min_length=8, max_length=48)

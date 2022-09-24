@@ -16,6 +16,10 @@
 			<div class="col-8">
                 {{ form.login }}
             </div>
+			<small>
+				{{ form.login.errors }}
+				Required. 48 characters or fewer. Letters, digits and @/./+/-/_ only.
+			</small>
         </div>
 		<div class="form-group row">
 			<label class="col-form-label col-4">Email Address</label>
@@ -34,6 +38,13 @@
 			<div class="col-8">
                 {{ form.passwd }}
             </div>
+			<small>
+				{{ form.passwd.errors }}
+				Your password can’t be too similar to your other personal information. <br>
+				Your password must contain at least 8 characters. <br>
+				Your password can’t be a commonly used password. <br>
+				Your password can’t be entirely numeric.
+			</small>
         </div>
 		<div class="form-group row">
 			<label class="col-form-label col-4">Confirm Password</label>
