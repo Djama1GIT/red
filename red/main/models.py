@@ -1,16 +1,15 @@
+import json
+
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
-
-import json
 
 
 class User(models.Model):
     user_login = models.CharField('username', max_length=48)
     user = models.ForeignKey(get_user_model(), db_column="user_id", on_delete=models.CASCADE)
     phone = models.CharField('Phone number', max_length=16)
-    cart = models.JSONField('Cart', null=True)
-    purchases = models.JSONField('Purchases', null=True)
+    cart = models.JSONField('Cart', null=True, default=json.dumps({}))
 
     def __str__(self):
         return self.user_login

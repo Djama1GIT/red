@@ -69,26 +69,23 @@
                                 <i class="fa fa-star-o" aria-hidden="true"></i>
                             </div>
 
-                            <div class="widget size mb-50">
-                                <h6 class="widget-title">Size</h6>
-                                <div class="widget-desc">
-                                    <ul>
-                                        {% for size, v in product.sizes.items %}
-                                        <li><a href="#">{{ size }}</a></li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            </div>
-                            <!-- Add to Cart Form -->
-                            <form class="cart clearfix mb-50 d-flex" method="post">
-                                <div class="quantity">
-                                    <span class="qty-minus" onclick="var effect = document.getElementById('qty'); var qty = effect.value; if( !isNaN( qty ) &amp;&amp; qty &gt; 1 ) effect.value--;return false;"><i class="fa fa-minus" aria-hidden="true"></i></span>
-                                    <input type="number" class="qty-text" id="qty" step="1" min="1" max="{{ product.count }}" name="quantity" value="1">
-                                    <span class="qty-plus" onclick="var effect = document.getElementById('qty'); var qty = effect.value; if( !isNaN( qty )) effect.value++;return false;"><i class="fa fa-plus" aria-hidden="true"></i></span>
-                                </div>
-                                <button type="submit" name="addtocart" value="5" class="btn cart-submit d-block">Add to cart</button>
-                            </form>
+                            <form class="cart mb-50 d-flex" method="post">
+                                {% csrf_token %}
 
+                                <div class="widget size mb-50">
+                                    <h6 class="widget-title">Size</h6>
+                                    <div class="widget-desc">
+                                        <ul>
+                                            {% for i in form %}
+                                                <li>{{ i }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <br>
+                                    <!-- Add to Cart Form -->
+                                    <button type="submit" name="addtocart" class="btn cart-submit d-block">Add to cart</button>
+                                </div>
+                            </form>
                             <div id="accordion" role="tablist">
                                 <div class="card">
                                     <div class="card-header" role="tab" id="headingOne">
@@ -151,8 +148,6 @@
                                         <div class="product-description">
                                             <h4 class="product-price" style="color: #ff084e">{% if prod.prev_price > 0.0 %}<s style="color: #9f9f9f">${{ prod.prev_price }}</s> {% endif %}${{ prod.price }}</h4>
                                             <p>{{ prod.name }}</p>
-                                            <!-- Add to Cart -->
-                                            <a href="#" class="add-to-cart-btn">ADD TO CART</a>
                                         </div>
                                     </div>
                                 {% endfor %}

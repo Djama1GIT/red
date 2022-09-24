@@ -2,12 +2,11 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.conf import settings
 from django.db.models import Q
-from django.contrib.auth.hashers import make_password
 from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
 from django.contrib.auth.models import User as user
 from .models import *
-from .forms import EmailPostForm, SignUpForm
+from .forms import EmailPostForm, SignUpForm, AddToCartForm
 
 import json
 import math
@@ -26,6 +25,23 @@ for i in Category.objects.order_by('id').iterator():
             categories[i.type] += [i.subtype]
     else:
         categories[i.type] = []
+
+
+def cart(request):
+    if request.user.is_anonymous:
+        return None
+    cat = User.objects.filter(user=request.user.id)[0].cart
+    cat = json.loads(cat)
+    _cart_ = {}
+    _cart_["sum"] = 0
+    for k, v in cat.items():
+        product = Product.objects.filter(id=int(k))[0]
+        for z, a in json.loads(product.image).items():
+            product.image = z + "/" + a[0]
+        _cart_["sum"] += product.price
+        _cart_[product.name] = [product.price, product.image, product.slug, v]
+    _cart_["sum"] = float('{:.2f}'.format(_cart_["sum"]))
+    return _cart_
 
 
 class myLoginView(auth_views.LoginView):
@@ -62,7 +78,6 @@ class SignUpView(View):
                                                  email=data["mail"],
                                                  password=data["passwd"])
                         up_user = authenticate(request, username=data["login"], password=data["passwd"])
-                        print(up_user)
                         User(user_login=up_user, user=up_user, phone=data["phone"]).save()
                         if up_user is not None:
                             return HttpResponseRedirect('/Login/')
@@ -71,7 +86,8 @@ class SignUpView(View):
         else:
             print(form.cleaned_data, form.errors)
         return render(request, 'registration/signup.html',
-                      {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                      {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                       'phone_ed': phone_number_ed,
                        'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
                        'linkedIn': linkedIn,
                        'pinterest': pinterest, 'categories': categories, 'form': form})
@@ -108,7 +124,9 @@ def MainView(request):
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
     return render(request, 'red/index.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed, 'promos': promos,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
+                   'promos': promos,
                    'promos_width': promos_width, 'fashions': fashions, 'fashion_minis': fashion_minis,
                    'STATIC_URL': settings.STATIC_URL, 'hot': hot, 'reviews': reviews, 'facebook': facebook,
                    'twitter': twitter, 'linkedIn': linkedIn, 'pinterest': pinterest, 'products': products,
@@ -116,8 +134,14 @@ def MainView(request):
 
 
 def CartView(request):
+    if "clear" in request.GET:
+        if request.GET["clear"] == "True" and request.user.username:
+            User.objects.filter(user=request.user.id).update(cart="{}")
+            return HttpResponseRedirect('/Cart/')
+
     return render(request, 'red/cart.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
 
@@ -135,22 +159,35 @@ def ProdDetailsView(request, slug=None):
         for k, v in product.sizes.items():
             product.count += v
         product.image = json.loads(product.image)
-        # BETTER USE JSON!!!!!!!!!!!!!!!!!!!!!!!
         product.related = Product.objects.filter(~Q(slug=slug), type=product.type, subtype=product.subtype)[:5]
         for prod in product.related:
             for k, v in json.loads(prod.image).items():
                 prod.image = k + "/" + v[0]
     except Exception as exc:
         return render(request, 'red/500.html')
+    sizes = list(zip(map(str, range(len(product.sizes))), product.sizes.keys()))
+    form = AddToCartForm(request.POST, sizes)
+    if 'addtocart' in request.POST:
+        if form.is_valid():
+            data = form.cleaned_data
+            bd = User.objects.filter(user=request.user.id)[0].cart
+            load = json.loads(bd)
+            update = load.update({str(product.id): list(product.sizes.keys())[int(data['size'])]})
+            dump = json.dumps(load)
+            User.objects.filter(user=request.user.id).update(
+               cart=dump)
+            HttpResponseRedirect(request.get_full_path())
     return render(request, 'red/product-details.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'form': form, 'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                   'pinterest': pinterest, 'categories': categories, 'product': product})
 
 
 def CheckoutView(request):
     return render(request, 'red/checkout.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
 
@@ -162,7 +199,8 @@ def SubsribeView(request):
                 MailingList(mail=request.GET["mail"]).save()
 
     return render(request, 'red/subscribe.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
 
@@ -199,7 +237,8 @@ def ShopView(request, cat=None, subcat=None):
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
     return render(request, 'red/shop.html',
-                  {'title': 'RED | Shop', 'phone': phone_number, 'phone_ed': phone_number_ed, 'type': cat,
+                  {'cart': cart(request), 'title': 'RED | Shop', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'type': cat,
                    'subtype': subcat, 'categories': categories, 'colors': colors, 'sizes': sizes,
                    'pages': range(1, pages + 1), 'active_page': active_page,
                    'products': products, 'STATIC_URL': settings.STATIC_URL})
@@ -222,7 +261,8 @@ def ContactView(request):
 
 def err404(request, exception):
     return render(request, 'errors/404.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception
                   )
@@ -230,7 +270,8 @@ def err404(request, exception):
 
 def err500(request, exception):
     return render(request, 'errors/500.html',
-                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception
                   )

@@ -1,6 +1,12 @@
 from django import forms
 
 
+class AddToCartForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['size'] = forms.ChoiceField(widget=forms.RadioSelect(), choices=args[1])
+
+
 class EmailPostForm(forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter First Name'}), max_length=48)
     lastname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Last Name'}), max_length=48)

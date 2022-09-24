@@ -130,3 +130,15 @@
 .a-red {
     color: #ff084e;
 }
+.btn-logout {
+    background-color: #ff084e;
+    border-radius: 0;
+    color: #fff;
+    font-size: 13px;
+}
+.btn-purchases {
+    background-color: #3a3a3a;
+    border-radius: 0;
+    color: #fff;
+    font-size: 13px;
+}

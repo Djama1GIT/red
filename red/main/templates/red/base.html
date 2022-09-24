@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <!-- Title  -->
@@ -70,35 +69,30 @@
                                     {% if request.user.is_authenticated %}
                                     <!-- Cart Area -->
                                         <div class="cart">
-                                            <a href="#" id="header-cart-btn" target="_blank"><span class="cart_quantity">2</span> <i class="ti-bag"></i> Your Bag $20</a>
+                                            <a href="#" id="header-cart-btn" target="_blank"><span class="cart_quantity">{{ cart.keys|length|add:"-1"}}</span> <i class="ti-bag"></i> Your Bag ${% if cart %}{{ cart.sum }}{% else %}is Empty{% endif %}</a>
                                             <!-- Cart List Area Start -->
                                             <ul class="cart-list">
-                                                <li>
-                                                    <a href="#" class="image"><img src="{% static 'img/product-img/product-10.jpg' %}" class="cart-thumb" alt=""></a>
-                                                    <div class="cart-item-desc">
-                                                        <h6><a href="#">Women's Fashion</a></h6>
-                                                        <p>1x - <span class="price">$10</span></p>
-                                                    </div>
-                                                    <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="image"><img src="{% static 'img/product-img/product-11.jpg' %}" class="cart-thumb" alt=""></a>
-                                                    <div class="cart-item-desc">
-                                                        <h6><a href="#">Women's Fashion</a></h6>
-                                                        <p>1x - <span class="price">$10</span></p>
-                                                    </div>
-                                                    <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
-                                                </li>
+                                                {% if cart %}
+                                                    {% for v, i in cart.items %}
+                                                        {% if v != "sum" %}
+                                                            <li>
+                                                                <a href="{% url 'product-details' %}{{ i.2 }}" class="image"><img src="{{ STATIC_URL}}{{ i.1 }}" class="cart-thumb" alt=""></a>
+                                                                <div class="cart-item-desc">
+                                                                    <h6><a href="{% url 'product-details' %}{{ i.2 }}">{{ v }} ({{ i.3 }})</a></h6>
+                                                                    <p>1x - <span class="price">{{ i.0 }}</span></p>
+                                                                </div>
+                                                                <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
+                                                            </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif%}
                                                 <li class="total">
-                                                    <span class="pull-right">Total: $20.00</span>
                                                     <a href="{% url 'cart' %}" class="btn btn-sm btn-cart">Cart</a>
                                                     <a href="{% url 'checkout' %}" class="btn btn-sm btn-checkout">Checkout</a>
-
-                                                </li>
-                                                <li>
-                                                    <div class="pull-right">
-                                                        <a class="a-red" href="{% url 'logout' %}">Log Out</a>
-                                                    </div>
+                                                    <a href="{% url 'cart' %}" class="btn btn-sm btn-purchases">Purchases</a>
+                                                    <br><br>
+                                                    <span class="pull-left">Total: ${{ cart.sum }}</span>
+                                                    <a class="pull-right btn btn-sm btn-logout" href="{% url 'logout' %}">Log Out</a><br>
                                                 </li>
                                             </ul>
                                         </div>

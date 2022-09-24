@@ -488,8 +488,8 @@ img {
 }
 
 .cart-list .image > img {
-    width: 40px;
-    height: 40px;
+    max-width: 40px;
+    max-height: 40px;
 }
 
 .cart-item-desc {
@@ -940,7 +940,6 @@ img {
     cursor: pointer;
     font-size: 13px;
     height: 35px;
-    margin-left: 15px;
     width: 120px;
     -webkit-transition-duration: 500ms;
     transition-duration: 500ms;
@@ -1779,7 +1778,6 @@ img {
     color: #fff;
     font-size: 14px;
     height: 40px;
-    margin-left: 15px;
     text-transform: uppercase;
     width: 150px;
     cursor: pointer;
@@ -1870,14 +1868,6 @@ img {
     font-weight: 400;
 }
 
-.cart-table .qty-minus,
-.cart-table .qty-plus {
-    background-color: #f6f6f6;
-    cursor: pointer;
-    display: inline-block;
-    height: 30px;
-    width: 30px;
-}
 
 .cart-table .qty-minus i,
 .cart-table .qty-plus i {
@@ -1895,7 +1885,7 @@ img {
     appearance: textfield;
     text-align: center;
     font-size: 12px;
-    width: 50px;
+    width: 110px;
 }
 
 .cart-table .quantity {
