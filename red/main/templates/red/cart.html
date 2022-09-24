@@ -40,7 +40,7 @@
 
                         <div class="cart-footer d-flex mt-30">
                             <div class="back-to-shop w-50">
-                                <a href="shop-grid-left-sidebar.html">Continue shooping</a>
+                                <a href="{% url 'shop' %}">Continue shoping</a>
                             </div>
                             <div class="update-checkout w-50 text-right">
                                 <a href="#">clear cart</a>
@@ -99,7 +99,7 @@
                                 <li><span>Shipping</span> <span>Free</span></li>
                                 <li><span><strong>Total</strong></span> <span><strong>$59.90</strong></span></li>
                             </ul>
-                            <a href="checkout" class="btn karl-checkout-btn">Proceed to checkout</a>
+                            <a href="{% url 'checkout' %}" class="btn karl-checkout-btn">Proceed to checkout</a>
                         </div>
                     </div>
                 </div>

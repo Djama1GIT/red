@@ -67,7 +67,7 @@
                                 </div>
                                 <!-- Cart & Menu Area -->
                                 <div class="header-cart-menu d-flex align-items-center ml-auto">
-                                    {% if user.authenticated %}
+                                    {% if request.user.is_authenticated %}
                                     <!-- Cart Area -->
                                         <div class="cart">
                                             <a href="#" id="header-cart-btn" target="_blank"><span class="cart_quantity">2</span> <i class="ti-bag"></i> Your Bag $20</a>
@@ -93,6 +93,12 @@
                                                     <span class="pull-right">Total: $20.00</span>
                                                     <a href="{% url 'cart' %}" class="btn btn-sm btn-cart">Cart</a>
                                                     <a href="{% url 'checkout' %}" class="btn btn-sm btn-checkout">Checkout</a>
+
+                                                </li>
+                                                <li>
+                                                    <div class="pull-right">
+                                                        <a class="a-red" href="">Log Out</a>
+                                                    </div>
                                                 </li>
                                             </ul>
                                         </div>

@@ -1,7 +1,9 @@
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.conf import settings
 from django.db.models import Q
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import views as auth_views
 from .models import *
 from .forms import EmailPostForm, LogInForm, SignUpForm
 import json
@@ -16,7 +18,6 @@ pinterest = SocialMedia.objects.filter(social='Pinterest')[0].data
 
 categories = {}
 for i in Category.objects.order_by('id').iterator():
-    print(i)
     if i.type in categories:
         if i.subtype != "None":
             categories[i.type] += [i.subtype]
@@ -45,8 +46,9 @@ def MainView(request):
 
 def CartView(request):
     return render(request, 'red/cart.html',
-                  {'title': 'RED | Cart', 'phone': phone_number,
-                   'phone_ed': phone_number_ed, 'categories': categories})
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
 def ProdDetailsView(request, slug=None):
@@ -70,40 +72,45 @@ def ProdDetailsView(request, slug=None):
     except Exception as exc:
         return render(request, 'red/500.html')
     return render(request, 'red/product-details.html',
-                  {'title': 'RED | Product Details', 'phone': phone_number, 'product': product,
-                   'phone_ed': phone_number_ed, 'categories': categories, 'STATIC_URL': settings.STATIC_URL})
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
 def CheckoutView(request):
     return render(request, 'red/checkout.html',
-                  {'title': 'RED | Checkout Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'categories': categories})
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
-def LoginView(request):
-    if request.method == 'POST':
-        form = EmailPostForm(request.POST)
-        if form.is_valid():
-            ...
-        return HttpResponseRedirect('/Shop')
-    else:
-        form = LogInForm()
-    return render(request, 'red/login.html',
-                  {'form': form, 'title': 'RED | Log In', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'categories': categories})
+class myLoginView(auth_views.LoginView):
+    template_name = "registration/login.html"
+    extra_context = {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                     'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                     'pinterest': pinterest, 'categories': categories}
 
 
 def SignUpView(request):
     if request.method == 'POST':
-        form = EmailPostForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            ...
-        return HttpResponseRedirect('/Shop')
+            data = form.cleaned_data
+            keys = data.keys()
+            if "login" in keys and "passwd" in keys and "repeat_passwd" in keys and "mail" in keys and "phone" in keys:
+                if data["passwd"] == data["repeat_passwd"]:
+                    if not User.objects.filter(login=data["login"]):
+                        # change to default django methods
+                        User(login=data["login"], password=make_password(data["passwd"]), phone=data["phone"],
+                             mail=data["mail"]).save()
+        else:
+            print(form.cleaned_data, form.errors)
     else:
         form = SignUpForm()
     return render(request, 'red/signup.html',
-                  {'form': form, 'title': 'RED | Sign Up', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'categories': categories})
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
 def SubsribeView(request):
@@ -113,8 +120,9 @@ def SubsribeView(request):
                 MailingList(mail=request.GET["mail"]).save()
 
     return render(request, 'red/subscribe.html',
-                  {'title': 'RED | Subscribe | Redirection..', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'categories': categories})
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories})
 
 
 def ShopView(request, cat=None, subcat=None):
@@ -142,7 +150,6 @@ def ShopView(request, cat=None, subcat=None):
     active_page = int(request.GET['page']) if 'page' in request.GET else 1
     if active_page > pages:
         active_page = 1
-    print(active_page * products_on_page - products_on_page)
     products = Product.objects.raw(
         f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY id LIMIT "
         f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}")[::-1]
@@ -175,5 +182,13 @@ def err404(request, exception):
     return render(request, 'red/404.html',
                   {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories}, status=404
+                   'pinterest': pinterest, 'categories': categories}, status=exception
+                  )
+
+
+def err500(request, exception):
+    return render(request, 'red/500.html',
+                  {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+                   'pinterest': pinterest, 'categories': categories}, status=exception
                   )

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+import json
 
 
 class User(models.Model):
@@ -7,8 +8,8 @@ class User(models.Model):
     password = models.TextField('Password')
     phone = models.CharField('Phone number', max_length=16)
     mail = models.EmailField('Email')
-    cart = models.JSONField('Cart')
-    purchases = models.JSONField('Purchases')
+    cart = models.JSONField('Cart', null=True)
+    purchases = models.JSONField('Purchases', null=True)
 
     def __str__(self):
         return self.login
