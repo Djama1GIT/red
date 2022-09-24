@@ -5,9 +5,10 @@ from django.db.models import Q
 from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
 from django.contrib.auth.models import User as user
+from django.contrib.auth.hashers import make_password
 from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
     Comment, Purchase
-from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm
+from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm
 
 import json
 import math
@@ -46,6 +47,7 @@ def cart(request):
 
 
 class myLoginView(auth_views.LoginView):
+    next_page = 'index'
     template_name = "registration/login.html"
     extra_context = {'title': 'RED | Login', 'phone': phone_number, 'phone_ed': phone_number_ed,
                      'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
@@ -58,9 +60,11 @@ class myLogoutView(auth_views.LogoutView):
 
 class SignUpView(View):
     def get(self, request):
+        if request.user.id:
+            return HttpResponseRedirect('/')
         form = SignUpForm()
         return render(request, 'registration/signup.html',
-                      {'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                      {'title': 'RED | Sign Up', 'phone': phone_number, 'phone_ed': phone_number_ed,
                        'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
                        'linkedIn': linkedIn,
                        'pinterest': pinterest, 'categories': categories, 'form': form})
@@ -141,7 +145,7 @@ def CartView(request):
             return HttpResponseRedirect('/Cart/')
 
     return render(request, 'red/cart.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'cart': cart(request), 'title': 'RED | Cart', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
@@ -179,7 +183,7 @@ def ProdDetailsView(request, slug=None):
                 cart=dump)
             HttpResponseRedirect(request.get_full_path())
     return render(request, 'red/product-details.html',
-                  {'form': form, 'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'form': form, 'cart': cart(request), 'title': 'RED | ', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories, 'product': product})
@@ -201,7 +205,7 @@ def CheckoutView(request):
     else:
         return HttpResponseRedirect('/Purchases/')
     return render(request, 'red/checkout.html',
-                  {'form': form, 'cart': cat, 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'form': form, 'cart': cat, 'title': 'RED | Checkout Page', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
@@ -210,7 +214,7 @@ def CheckoutView(request):
 def PurchasesView(request):
     purchases = Purchase.objects.filter(user=request.user.id)[::-1]
     return render(request, 'red/purchases.html',
-                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Purchases', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
@@ -223,7 +227,7 @@ def SubsribeView(request):
                 MailingList(mail=request.GET["mail"]).save()
 
     return render(request, 'red/subscribe.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'cart': cart(request), 'title': 'RED | Subscribing', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
@@ -278,14 +282,67 @@ def ContactView(request):
     else:
         form = EmailPostForm()
     return render(request, 'red/contact.html',
-                  {'form': form, 'title': 'RED | Home Page', 'phone': phone_number, 'phone_ed': phone_number_ed,
+                  {'cart': cart(request), 'form': form, 'title': 'RED | Contact', 'phone': phone_number,
+                   'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories})
 
 
+class SettingsView(View):
+    def get(self, request):
+        form = SettingsForm(
+            initial={'phone': User.objects.filter(user=request.user.id)[0].phone, 'mail': request.user.email})
+        return render(request, 'red/settings.html',
+                      {'cart': cart(request), 'form': form, 'title': 'RED | Settings', 'phone': phone_number,
+                       'phone_ed': phone_number_ed,
+                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
+                       'linkedIn': linkedIn,
+                       'pinterest': pinterest, 'categories': categories})
+
+    def post(self, request):
+        global form
+        red = False
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            if (data['mail'] != user.objects.filter(username=request.user.username)[0].email) and data['mail']:
+                red = True
+                user.objects.filter(username=request.user.username).update(email=data['mail'])
+            if (data['phone'] != int(User.objects.filter(user=request.user.id)[0].phone)) and data['phone']:
+                red = True
+                User.objects.filter(user=request.user.id).update(phone=data['phone'])
+            if data['old']:
+                au = authenticate(request, username=request.user.username, password=data["old"])
+                if au:
+                    if self.check_password(data['passwd'], data['repeat_passwd'], request.user.username):
+                        s = user.objects.get(username=request.user.username)
+                        s.set_password(str(data['passwd'].strip()))
+                        s.save()
+                        return HttpResponseRedirect('/Login/')
+                else:
+                    form.add_error('old', 'Incorrect password')
+        if red:
+            return HttpResponseRedirect(request.get_full_path())
+        else:
+            return render(request, 'red/settings.html',
+                          {'cart': cart(request), 'form': form, 'title': 'RED | Settings', 'phone': phone_number,
+                           'phone_ed': phone_number_ed,
+                           'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
+                           'linkedIn': linkedIn,
+                           'pinterest': pinterest, 'categories': categories})
+
+    def check_password(self, password: str, repeat_password: str, username: str):
+        if password == repeat_password and len(password) >= 8 and (
+                not password.isnumeric()) and username != password:
+            return True
+        else:
+            form.add_error('passwd', 'Invalid password')
+            return False
+
+
 def err404(request, exception):
     return render(request, 'errors/404.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'cart': cart(request), 'title': 'RED | Error 404', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception
@@ -294,7 +351,7 @@ def err404(request, exception):
 
 def err500(request, exception):
     return render(request, 'errors/500.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
+                  {'cart': cart(request), 'title': 'RED | Error 500', 'phone': phone_number,
                    'phone_ed': phone_number_ed,
                    'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
                    'pinterest': pinterest, 'categories': categories}, status=exception

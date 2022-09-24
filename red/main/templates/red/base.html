@@ -90,7 +90,10 @@
                                                     <a href="{% url 'purchases' %}" class="btn btn-sm btn-purchases">Purchases</a>
                                                     <br><br>
                                                     <span class="pull-left">Total: ${{ cart.1 }}</span>
-                                                    <a class="pull-right btn btn-sm btn-logout" href="{% url 'logout' %}">Log Out</a><br>
+                                                    <div class="pull-right btn">
+                                                        <a class="btn-sm" href="{% url 'settings' %}">🙍🏻‍♂️🔧</a>
+                                                        <a class="btn-sm btn-logout" href="{% url 'logout' %}">Log Out</a>
+                                                    </div><br>
                                                 </li>
                                             </ul>
                                         </div>
@@ -133,14 +136,6 @@
                                             <li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
                                             <li class="nav-item"><a class="nav-link" href="{% url 'shop'%}">Shop</a></li>
                                             <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
-                                            <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" href="#" id="karlDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
-                                                <div class="dropdown-menu" aria-labelledby="karlDropdown">
-                                                    <a class="dropdown-item" href="{% url 'product-details'%}">Product Details</a>
-                                                    <a class="dropdown-item" href="{% url 'cart'%}">Cart</a>
-                                                    <a class="dropdown-item" href="{% url 'checkout'%}">Checkout</a>
-                                                </div>
-                                            </li>
                                         </ul>
                                     </div>
                                 </nav>

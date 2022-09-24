@@ -33,3 +33,16 @@ class CheckoutForm(forms.Form):
     postcode = forms.CharField(widget=forms.TextInput(), max_length=48)
     city = forms.CharField(widget=forms.TextInput(), max_length=48)
     province = forms.CharField(widget=forms.TextInput(), max_length=48)
+
+
+class SettingsForm(forms.Form):
+    mail = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Enter email'}), max_length=56,
+                            required=False)
+    phone = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Enter Phone number'}),
+                               min_value=1000000000, max_value=9999999999, required=False)
+    old = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter old password'}),
+                          min_length=8, max_length=48, required=False)
+    passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'}),
+                             min_length=8, max_length=48, required=False)
+    repeat_passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'}),
+                                    min_length=8, max_length=48, required=False)

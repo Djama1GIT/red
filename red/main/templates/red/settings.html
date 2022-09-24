@@ -1,0 +1,61 @@
+{% extends 'red/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<!-- ****** Checkout Area Start ****** -->
+        <div class="checkout_area">
+            <div class="container">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12 col-md-12">
+                            <div class="checkout_details_area clearfix">
+                                <div class="cart-page-heading">
+                                    <h5>Settings</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 mb3">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label>Email</label>
+                                        {{ form.mail }}
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label>Phone number</label>
+                                        {{ form.phone }}
+                                    </div>
+                                    <div class="col-12 mt-30">
+                                        <h6>Change password</h6>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label>Enter old password</label>
+                                        {{ form.old }}
+                                        {{ form.old.errors }}
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label>Enter new password</label>
+                                        {{ form.passwd }}
+                                        {{ form.passwd.errors }}
+                                        Your password can’t be too similar to your other personal information. <br>
+                                        Your password must contain at least 8 characters. <br>
+                                        Your password can’t be a commonly used password. <br>
+                                        Your password can’t be entirely numeric.
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label>Confirm new password</label>
+                                        {{ form.repeat_passwd }}
+                                    </div>
+                                </div>
+                                <div class="row col-12 mb-50">
+                                    <button class="submit qwe-btn btn btn-default" type="submit">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- ****** Checkout Area End ****** -->
+{% endblock %}

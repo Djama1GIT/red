@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.contrib.auth import views
 from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView, SubsribeView, ContactView, \
-    myLoginView, SignUpView, myLogoutView, PurchasesView
+    myLoginView, SignUpView, myLogoutView, PurchasesView, SettingsView
 
 urlpatterns = [
                   path('', MainView, name='index'),
@@ -18,5 +18,6 @@ urlpatterns = [
                   path('Shop/', ShopView, name='shop'),
                   path('Subscribe/', SubsribeView, name='subscribe'),
                   path('Contact/', ContactView, name='contact'),
+                  path('Settings/', SettingsView.as_view(), name='settings'),
                   path('__debug__/', include('debug_toolbar.urls')),
               ]
