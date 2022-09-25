@@ -62,11 +62,9 @@
                             <p class="available">Available: <span class="text-muted">{% if product.count > 0 %}In{% else %}Out of{% endif %} Stock</span></p>
 
                             <div class="single_product_ratings mb-15">
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star" aria-hidden="true"></i>
-                                <i class="fa fa-star-o" aria-hidden="true"></i>
+                                {% for i in product.rating|_rating %}
+                                    <i class="{{ i }}" aria-hidden="true"></i>
+                                {% endfor %}
                             </div>
 
                             <form class="cart mb-50 d-flex" method="post">
