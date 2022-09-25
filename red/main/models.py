@@ -1,8 +1,10 @@
-import json
-
 from django.db import models
 from django.utils.text import slugify
+from django.utils.html import mark_safe
 from django.contrib.auth import get_user_model
+from django.conf import settings
+
+import json
 
 
 class User(models.Model):
@@ -38,7 +40,7 @@ class Purchase(models.Model):
 
 class SocialMedia(models.Model):
     social = models.CharField('Social', max_length=32)
-    data = models.TextField('Data')
+    data = models.CharField('Data', max_length=48)
 
     def __str__(self):
         return self.social
@@ -57,30 +59,45 @@ class Promo(models.Model):
 
 
 class Product(models.Model):
-    name = models.TextField('The product\'s name')
+    genders = [
+        ('unisex', 'Unisex'),
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ]
+    name = models.CharField('The product\'s name', max_length=96)
     slug = models.SlugField(default='', null=False)
-    gender = models.CharField('gender', max_length=8)
-    type = models.TextField('type')
-    subtype = models.TextField('subtype')
+    gender = models.CharField('gender', choices=genders, max_length=8)
+    type = models.CharField('type', max_length=48)
+    subtype = models.CharField('subtype', max_length=48)
     sizes = models.TextField('sizes')
     price = models.FloatField('price')
     prev_price = models.FloatField('prev_price')
+    rating = models.IntegerField('rating', default=0)
     color = models.CharField('color', max_length=6)
     image = models.TextField('image')
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
-        self.slug = slugify(self.name) + "-" + str(self.id)
+        abc = Product.objects.latest('id').id + 1 if self.id is None else self.id
+        self.slug = slugify(self.name) + "-" + str(abc)
         super(Product, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
+    def image_tag(self):
+        for z, a in json.loads(self.image).items():
+            self.image_url = z + "/" + a[0]
+        return mark_safe(
+            f'<img src="{settings.STATIC_URL}{self.image_url}" style="max-height:50px" />')  # Get Image url
+
+    image_tag.short_description = 'Image(tap to change)'
+
 
 class Fashion(models.Model):
-    name = models.TextField('name')
-    description = models.TextField('description')
-    button_text = models.TextField('button text')
+    name = models.CharField('name', max_length=32)
+    description = models.CharField('description', max_length=64)
+    button_text = models.CharField('button text', max_length=32)
     link = models.TextField('link')
     image = models.TextField('image')
     anim1 = models.CharField('anim1', max_length=16)
@@ -91,22 +108,32 @@ class Fashion(models.Model):
     def __str__(self):
         return self.name
 
+    def image_tag(self):
+        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+
+    image_tag.short_description = 'Image'
+
 
 class FashionMini(models.Model):
-    name = models.TextField('name')
-    description = models.TextField('description')
-    button_text = models.TextField('button text')
+    name = models.CharField('name', max_length=32)
+    description = models.CharField('description', max_length=64)
+    button_text = models.CharField('button text', max_length=32)
     link = models.TextField('link')
     image = models.TextField('image')
 
     def __str__(self):
         return self.name
 
+    def image_tag(self):
+        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+
+    image_tag.short_description = 'Image'
+
 
 class Hot(models.Model):
-    name = models.TextField('name')
-    description = models.TextField('description')
-    button_text = models.TextField('button text')
+    name = models.CharField('name', max_length=32)
+    description = models.CharField('description', max_length=64)
+    button_text = models.CharField('button text', max_length=32)
     link = models.TextField('link')
     image = models.TextField('image')
     prev_price = models.FloatField('prev price')
@@ -114,6 +141,11 @@ class Hot(models.Model):
 
     def __str__(self):
         return self.name
+
+    def image_tag(self):
+        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+
+    image_tag.short_description = 'Image'
 
 
 class Review(models.Model):
@@ -125,7 +157,16 @@ class Review(models.Model):
     def __str__(self):
         return self.name
 
+    def __review__(self):
+        return self.review[:96] + ("..." if len(self.review[:]) > 96 else "")
 
+    def image_tag(self):
+        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+
+    image_tag.short_description = 'Image'
+
+
+# Next time it's better to create 2 tables (type + subtype) and link them using FK
 class Category(models.Model):
     type = models.CharField('type', max_length=48)
     subtype = models.CharField('subtype', max_length=48)
@@ -149,3 +190,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.mail
+
+    def __comment__(self):
+        return self.comment[:64] + ("..." if len(self.comment[:]) > 64 else "")

@@ -5,7 +5,6 @@ from django.db.models import Q
 from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
 from django.contrib.auth.models import User as user
-from django.contrib.auth.hashers import make_password
 from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
     Comment, Purchase
 from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm
@@ -161,15 +160,19 @@ def ProdDetailsView(request, slug=None):
     product.sizes = json.loads(product.sizes)
     product.count = 0
     try:
-        for k, v in product.sizes.items():
-            product.count += v
+        x = dict(product.sizes)
+        for k, v in x.items():
+            if v == 0:
+                del product.sizes[k]
+                continue
+            product.count += int(v)
         product.image = json.loads(product.image)
         product.related = Product.objects.filter(~Q(slug=slug), type=product.type, subtype=product.subtype)[:5]
         for prod in product.related:
             for k, v in json.loads(prod.image).items():
                 prod.image = k + "/" + v[0]
     except Exception as exc:
-        return render(request, 'red/500.html')
+        return render(request, 'errors/500.html')
     sizes = list(zip(map(str, range(len(product.sizes))), product.sizes.keys()))
     form = AddToCartForm(request.POST, sizes)
     if 'addtocart' in request.POST:
