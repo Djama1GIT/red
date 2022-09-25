@@ -71,7 +71,9 @@
                                 {% csrf_token %}
 
                                 <div class="widget size mb-50">
-                                    <h6 class="widget-title">Size</h6>
+                                    {% if product.count > 0 %}
+                                        <h6 class="widget-title">Size</h6>
+                                    {% endif %}
                                     <div class="widget-desc">
                                         <ul>
                                             {% for i in form %}
@@ -81,7 +83,9 @@
                                     </div>
                                     <br>
                                     <!-- Add to Cart Form -->
-                                    <button type="submit" name="addtocart" class="btn cart-submit d-block">Add to cart</button>
+                                    {% if product.count > 0 %}
+                                        <button type="submit" name="addtocart" class="btn cart-submit d-block">Add to cart</button>
+                                    {% endif %}
                                 </div>
                             </form>
                             <div id="accordion" role="tablist">

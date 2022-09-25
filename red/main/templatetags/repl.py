@@ -18,5 +18,4 @@ def _rating(value):
         x += ['fa fa-star']
     for i in range(5 - value):
         x += ['fa fa-star-o']
-    print(x)
     return x

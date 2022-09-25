@@ -77,8 +77,14 @@
                                                         <li>
                                                             <a href="{% url 'product-details' %}{{ i.2 }}" class="image"><img src="{{ STATIC_URL}}{{ i.1 }}" class="cart-thumb" alt=""></a>
                                                             <div class="cart-item-desc">
-                                                                <h6><a href="{% url 'product-details' %}{{ i.2 }}">{{ v }} ({{ i.3 }})</a></h6>
-                                                                <p>1x - <span class="price">{{ i.0 }}</span></p>
+                                                                <h6>
+                                                                    <a href="{% url 'product-details' %}{{ i.2 }}">{{ v }} ({{ i.3 }})</a>
+                                                                    {% if i.4 < 1 %}
+                                                                    <div class="a-red small-text">The product is over!</div>
+                                                                    {% endif %}
+                                                                </h6>
+
+                                                                <p>{{ i.5 }}x - <span class="price">${{ i.0 }}</span></p>
                                                             </div>
                                                             <span class="dropdown-product-remove"><i class="icon-cross"></i></span>
                                                         </li>

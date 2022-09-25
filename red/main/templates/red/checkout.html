@@ -60,7 +60,9 @@
                                 <ul class="order-details-form mb-4">
                                     <li><span>Product</span> <span>Total</span></li>
                                     {% for k, v in cart.0.items %}
-                                        <li><span>{{ k }} ({{ v.3 }})</span> <span>${{ v.0 }}</span></li>
+                                        {% if v.4 > 0 %}
+                                            <li><span>{{ k }} ({{ v.3 }})</span> <span>${{ v.0 }}</span></li>
+                                        {% endif %}
                                     {% endfor %}
                                     <li><span>Subtotal</span> <span>${{ cart.1 }}</span></li>
                                     <li><span>Shipping</span> <span>Free</span></li>

@@ -37,10 +37,15 @@ def cart(request):
     cart_sum = 0
     for k, v in cat.items():
         product = Product.objects.filter(id=int(k))[0]
+        sizes = dict(json.loads(product.sizes))
+        count_sizes = 0
+        if v in sizes.keys():
+            count_sizes = sizes[v]
         for z, a in json.loads(product.image).items():
             product.image = z + "/" + a[0]
-        cart_sum += product.price
-        _cart_[product.name] = [product.price, product.image, product.slug, v]
+        if count_sizes > 0:
+            cart_sum += product.price
+        _cart_[product.name] = [product.price, product.image, product.slug, v, count_sizes, 1 if count_sizes > 1 else 0]
     cart_sum = float('{:.2f}'.format(cart_sum))
     return [_cart_, cart_sum]
 
@@ -180,7 +185,7 @@ def ProdDetailsView(request, slug=None):
             data = form.cleaned_data
             bd = User.objects.filter(user=request.user.id)[0].cart
             load = json.loads(bd)
-            update = load.update({str(product.id): list(product.sizes.keys())[int(data['size'])]})
+            load.update({str(product.id): list(product.sizes.keys())[int(data['size'])]})
             dump = json.dumps(load)
             User.objects.filter(user=request.user.id).update(
                 cart=dump)
@@ -199,10 +204,15 @@ def CheckoutView(request):
         if form.is_valid():
             data = form.cleaned_data
             for k, v in cat[0].items():
-                Purchase(user_login=request.user.username, user=request.user, first_name=data['first_name'],
-                         last_name=data['last_name'], country=data['country'], address=data['address'],
-                         postcode=data['postcode'], city=data['city'], province=data['province'],
-                         product=k, size=v[3], price=v[0], slug=v[2], image=v[1]).save()
+                new_sizes = json.loads(Product.objects.filter(slug=v[2])[0].sizes)
+                if v[3] in new_sizes:
+                    if new_sizes[v[3]] > 0:
+                        Purchase(user_login=request.user.username, user=request.user, first_name=data['first_name'],
+                                 last_name=data['last_name'], country=data['country'], address=data['address'],
+                                 postcode=data['postcode'], city=data['city'], province=data['province'],
+                                 product=k, size=v[3], price=v[0], slug=v[2], image=v[1]).save()
+                        new_sizes[v[3]] -= 1
+                        Product.objects.filter(slug=v[2]).update(sizes=json.dumps(new_sizes))
             User.objects.filter(user=request.user.id).update(cart="{}")
             return HttpResponseRedirect('/Shop/')
     else:
