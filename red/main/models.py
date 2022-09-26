@@ -69,12 +69,13 @@ class Product(models.Model):
     gender = models.CharField('gender', choices=genders, max_length=8)
     type = models.CharField('type', max_length=48)
     subtype = models.CharField('subtype', max_length=48)
-    sizes = models.TextField('sizes')
+    sizes = models.TextField('sizes', default=json.dumps({"XS": 15, "S": 15, "M": 15, "L": 15, "XL": 15, "XXL": 15}),
+                             blank=True)
     price = models.FloatField('price')
     prev_price = models.FloatField('prev_price')
     rating = models.IntegerField('rating', default=0)
     color = models.CharField('color', max_length=6)
-    image = models.TextField('image')
+    image = models.TextField('image', default=json.dumps({"img/product-img": ["default.png"]}))
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
@@ -89,9 +90,15 @@ class Product(models.Model):
         for z, a in json.loads(self.image).items():
             self.image_url = z + "/" + a[0]
         return mark_safe(
-            f'<img src="{settings.STATIC_URL}{self.image_url}" style="max-height:50px" />')  # Get Image url
+            f'<a href="/admin/main/change-photo/product/{self.slug}"><img src='
+            f'"{settings.STATIC_URL}{self.image_url}" style="max-height:50px" /></a>')  # Get Image url
 
     image_tag.short_description = 'Image(tap to change)'
+
+
+class UploadImage(models.Model):
+    img = models.ImageField(upload_to="red/main/static/img/product-img")
+
 
 
 class Fashion(models.Model):
@@ -109,9 +116,11 @@ class Fashion(models.Model):
         return self.name
 
     def image_tag(self):
-        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+        return mark_safe(
+            f'<a href="/admin/main/change-photo/fashion/{self.id}"><img src='
+            f'"{settings.STATIC_URL}{self.image}" style="max-height:50px" /></a>')  # Get Image url
 
-    image_tag.short_description = 'Image'
+    image_tag.short_description = 'Image(tap to change)'
 
 
 class FashionMini(models.Model):
@@ -125,9 +134,11 @@ class FashionMini(models.Model):
         return self.name
 
     def image_tag(self):
-        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+        return mark_safe(
+            f'<a href="/admin/main/change-photo/fashionmini/{self.id}"><img src='
+            f'"{settings.STATIC_URL}{self.image}" style="max-height:50px" /></a>')  # Get Image url
 
-    image_tag.short_description = 'Image'
+    image_tag.short_description = 'Image(tap to change)'
 
 
 class Hot(models.Model):
@@ -143,9 +154,11 @@ class Hot(models.Model):
         return self.name
 
     def image_tag(self):
-        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+        return mark_safe(
+            f'<a href="/admin/main/change-photo/hot/{self.id}"><img src='
+            f'"{settings.STATIC_URL}{self.image}" style="max-height:50px" /></a>')  # Get Image url
 
-    image_tag.short_description = 'Image'
+    image_tag.short_description = 'Image(tap to change)'
 
 
 class Review(models.Model):
@@ -161,9 +174,11 @@ class Review(models.Model):
         return self.review[:96] + ("..." if len(self.review[:]) > 96 else "")
 
     def image_tag(self):
-        return mark_safe(f'<img src="{settings.STATIC_URL}{self.image}" style="max-height:50px" />')  # Get Image url
+        return mark_safe(
+            f'<a href="/admin/main/change-photo/review/{self.id}"><img src='
+            f'"{settings.STATIC_URL}{self.image}" style="max-height:50px" /></a>')  # Get Image url
 
-    image_tag.short_description = 'Image'
+    image_tag.short_description = 'Image(tap to change)'
 
 
 # Next time it's better to create 2 tables (type + subtype) and link them using FK

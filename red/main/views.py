@@ -1,3 +1,5 @@
+import random
+
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.conf import settings
@@ -6,8 +8,8 @@ from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
 from django.contrib.auth.models import User as user
 from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
-    Comment, Purchase
-from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm
+    Comment, Purchase, UploadImage
+from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm, UploadImageForm
 
 import json
 import math
@@ -18,6 +20,7 @@ twitter = SocialMedia.objects.filter(social='Twitter')[0].data
 facebook = SocialMedia.objects.filter(social='Facebook')[0].data
 linkedIn = SocialMedia.objects.filter(social='LinkedIn')[0].data
 pinterest = SocialMedia.objects.filter(social='Pinterest')[0].data
+products_on_page = 6
 
 categories = {}
 for i in Category.objects.order_by('id').iterator():
@@ -60,6 +63,130 @@ class myLoginView(auth_views.LoginView):
 
 class myLogoutView(auth_views.LogoutView):
     next_page = 'index'
+
+
+class ChangePhotoView(View):
+    prod = None
+
+    def get(self, request, what, slug):
+        if request.user.is_superuser:
+            if what == 'product':
+                try:
+                    self.prod = Product.objects.filter(slug=slug)[0]
+                    if 'delete' in request.GET:
+                        images = json.loads(self.prod.image)
+                        for k, v in images.items():
+                            del images[k][int(request.GET['delete'])]
+                            if len(images[k]) == 0:
+                                images = '{"img/product-img": ["default.png"]}'
+                                break
+                        images = str(images)
+                        self.prod.image = images.replace("'", '"')
+                        self.prod.save()
+                        return HttpResponseRedirect(request.path)
+                    self.prod.image = json.loads(self.prod.image)
+                except Exception:
+                    return HttpResponseRedirect('/admin/main')
+            elif what == 'review':
+                try:
+                    self.prod = Review.objects.filter(id=int(slug))[0]
+                    self.prod.image = '{"img/product-img": ["' + self.prod.image.split('/')[-1] + '"]}'
+                    if 'delete' in request.GET:
+                        self.prod.image = 'img/product-img/default-review.png'
+                        self.prod.save()
+                        return HttpResponseRedirect(request.path)
+                    self.prod.image = json.loads(self.prod.image)
+                except Exception:
+                    return HttpResponseRedirect('/admin/main')
+            elif what == 'fashion':
+                try:
+                    self.prod = Fashion.objects.filter(id=int(slug))[0]
+                    self.prod.image = '{"img/product-img": ["' + self.prod.image.split('/')[-1] + '"]}'
+                    if 'delete' in request.GET:
+                        self.prod.image = 'img/product-img/default-review.png'
+                        self.prod.save()
+                        return HttpResponseRedirect(request.path)
+                    self.prod.image = json.loads(self.prod.image)
+                except Exception:
+                    return HttpResponseRedirect('/admin/main')
+            elif what == 'fashionmini':
+                try:
+                    self.prod = FashionMini.objects.filter(id=int(slug))[0]
+                    self.prod.image = '{"img/product-img": ["' + self.prod.image.split('/')[-1] + '"]}'
+                    if 'delete' in request.GET:
+                        self.prod.image = 'img/product-img/default-review.png'
+                        self.prod.save()
+                        return HttpResponseRedirect(request.path)
+                    self.prod.image = json.loads(self.prod.image)
+                except Exception:
+                    return HttpResponseRedirect('/admin/main')
+            elif what == 'hot':
+                try:
+                    self.prod = Hot.objects.filter(id=int(slug))[0]
+                    self.prod.image = '{"img/product-img": ["' + self.prod.image.split('/')[-1] + '"]}'
+                    if 'delete' in request.GET:
+                        self.prod.image = 'img/product-img/default-review.png'
+                        self.prod.save()
+                        return HttpResponseRedirect(request.path)
+                    self.prod.image = json.loads(self.prod.image)
+                except Exception:
+                    return HttpResponseRedirect('/admin/main')
+            else:
+                return HttpResponseRedirect('/admin/main')
+            form = UploadImageForm()
+            return render(request, 'admin/change-photo.html',
+                          {'form': form, 'slug': slug, 'title': 'RED | Sign Up', 'phone': phone_number,
+                           'prod': self.prod, 'phone_ed': phone_number_ed,
+                           'what': what, 'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
+                           'linkedIn': linkedIn, 'pinterest': pinterest, 'categories': categories})
+        else:
+            return HttpResponseRedirect('/')
+
+    def post(self, request, what, slug, *args, **kwargs):
+        form = UploadImageForm(request.POST, request.FILES)
+        if what == "product":
+            try:
+                self.prod = Product.objects.filter(slug=slug)[0]
+            except Exception:
+                return HttpResponseRedirect('/admin/main')
+        elif what == 'fashion':
+            try:
+                self.prod = Fashion.objects.filter(id=int(slug))[0]
+            except Exception:
+                return HttpResponseRedirect('/admin/main')
+        elif what == 'fashionmini':
+            try:
+                self.prod = FashionMini.objects.filter(id=int(slug))[0]
+            except Exception:
+                return HttpResponseRedirect('/admin/main')
+        elif what == 'hot':
+            try:
+                self.prod = Hot.objects.filter(id=int(slug))[0]
+            except Exception:
+                return HttpResponseRedirect('/admin/main')
+        elif what == 'review':
+            try:
+                self.prod = Review.objects.filter(id=int(slug))[0]
+            except Exception:
+                return HttpResponseRedirect('/admin/main')
+        else:
+            return HttpResponseRedirect('/admin/main')
+        if form.is_valid():
+            if what == "product":
+                images = json.loads(self.prod.image)
+                images['img/product-img'] += [self.upload(form).split('/')[-1]]
+                images = str(images)
+                self.prod.image = images.replace("'", '"')
+            elif what in ["review", "fashion", "fashionmini", "hot"]:
+                self.prod.image = 'img/product-img/' + self.upload(form).split('/')[-1]
+            self.prod.save()
+        return HttpResponseRedirect(request.path)
+
+    def upload(self, form):
+        img = form.cleaned_data["image"]
+        obj = UploadImage(img=img)
+        obj.save()
+        return str(obj.img)
 
 
 class SignUpView(View):
@@ -128,7 +255,7 @@ def MainView(request):
     hot = Hot.objects.last()
     reviews = Review.objects.all()
     promos_width = str(100 / (promos.count() + 1))
-    products = Product.objects.order_by('id')[:6:-1]
+    products = Product.objects.order_by('-id')[:6]
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
@@ -265,15 +392,14 @@ def ShopView(request, cat=None, subcat=None):
     for i in colors_tmp:
         colors[i.color] = i.count
     sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-    products_on_page = 9
     pages = math.ceil(
         Product.objects.raw(f"SELECT 1 as id, count(*) as count from main_product {where}")[0].count / products_on_page)
     active_page = int(request.GET['page']) if 'page' in request.GET else 1
     if active_page > pages:
         active_page = 1
     products = Product.objects.raw(
-        f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY id LIMIT "
-        f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}")[::-1]
+        f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
+        f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}")
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]

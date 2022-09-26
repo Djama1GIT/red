@@ -1,0 +1,62 @@
+<html lang="en-us" dir="ltr">
+    {% load static repl %}
+    <head>
+        <title>Site administration | Django site admin</title>
+        <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+          <link rel="stylesheet" type="text/css" href="/static/admin/css/nav_sidebar.css">
+          <script src="/static/admin/js/nav_sidebar.js" defer=""></script>
+        <link rel="stylesheet" type="text/css" href="/static/admin/css/dashboard.css">
+            <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
+            <link rel="stylesheet" href="{% static 'style.css' %}">
+        <meta name="robots" content="NONE,NOARCHIVE">
+    </head>
+
+    <body class=" dashboard" data-admin-utc-offset="10800">
+        <!-- Container -->
+        <div id="container">
+            <!-- Header -->
+            <div id="header">
+                <div id="branding"><h1 id="site-name"><a href="/admin/">Django administration</a></h1></div>
+                <div id="user-tools">
+                        Welcome,<strong>{{ request.user.username }}</strong>.
+                            <a href="/">View site</a> /
+                        <a href="/admin/password_change/">Change password</a> /
+                        <a href="/admin/logout/">Log out</a>
+                </div>
+            </div>
+            <!-- END Header -->
+            <div class="main" id="main">
+              <div class="content">
+                <!-- Content -->
+                  <div class="a"><a href="/admin/main/{{ what }}">Go back</a></div>
+                  <div class="admin-content">
+                      <div class="name"><h1>Edit {{ what }} - {{ prod.name }}</h1></div>
+                      <center>
+                          <div class="images">
+                              {% for path, imgs in prod.image.items %}
+                                {% for img in imgs %}
+                                    <div class="image">
+                                      <p><a href="?delete={{ forloop.counter0 }}">x</a></p>
+                                      <img src="{{ STATIC_URL }}{{ path }}/{{ img }}" class="img">
+                                    </div>
+                                {% endfor %}
+                              {% endfor %}
+                              <div class="image">
+                                  <form method="POST" enctype="multipart/form-data">
+                                      {% csrf_token %}
+                                      {{ form.image }}
+                                      <button type="submit"><img src="{{ STATIC_URL }}{% if what == 'product' %}img/product-img/add.png{% else %}img/product-img/save.png{% endif %}" class="img"></button>
+                                  </form>
+                                </div>
+                          </div>
+                      </center>
+                  </div>
+                <!-- END Content -->
+                <div id="footer"></div>
+              </div>
+            </div>
+        </div>
+        <!-- END Container -->
+    </body>
+</html>

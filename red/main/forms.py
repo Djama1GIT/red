@@ -46,3 +46,7 @@ class SettingsForm(forms.Form):
                              min_length=8, max_length=48, required=False)
     repeat_passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'}),
                                     min_length=8, max_length=48, required=False)
+
+
+class UploadImageForm(forms.Form):
+    image = forms.ImageField()
