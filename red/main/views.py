@@ -259,11 +259,12 @@ def MainView(request):
 
 
 def CartView(request):
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/')
     if "clear" in request.GET:
         if request.GET["clear"] == "True" and request.user.username:
             User.objects.filter(user=request.user.id).update(cart="{}")
             return HttpResponseRedirect('/Cart/')
-
     return render(request, 'red/cart.html',
                   {'cart': cart(request), 'title': 'RED | Cart'} | extra)
 
@@ -294,6 +295,8 @@ def ProdDetailsView(request, slug=None):
     sizes = list(zip(map(str, range(len(product.sizes))), product.sizes.keys()))
     form = AddToCartForm(request.POST, sizes)
     if 'addtocart' in request.POST:
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/Login')
         if form.is_valid():
             data = form.cleaned_data
             bd = User.objects.filter(user=request.user.id)[0].cart
@@ -308,6 +311,8 @@ def ProdDetailsView(request, slug=None):
 
 
 def CheckoutView(request):
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/')
     form = CheckoutForm(request.POST)
     cat = cart(request)
     if cat[0]:
@@ -332,6 +337,8 @@ def CheckoutView(request):
 
 
 def PurchasesView(request):
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/')
     purchases = Purchase.objects.filter(user=request.user.id)[::-1]
     return render(request, 'red/purchases.html',
                   {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Purchases'} | extra)
@@ -399,6 +406,8 @@ def ContactView(request):
 
 class SettingsView(View):
     def get(self, request):
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/')
         form = SettingsForm(
             initial={'phone': User.objects.filter(user=request.user.id)[0].phone, 'mail': request.user.email})
         return render(request, 'red/settings.html',
@@ -406,6 +415,8 @@ class SettingsView(View):
 
     def post(self, request):
         global form
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/')
         red = False
         form = SettingsForm(request.POST)
         if form.is_valid():
