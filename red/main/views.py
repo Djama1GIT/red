@@ -30,6 +30,10 @@ for i in Category.objects.order_by('id').iterator():
     else:
         categories[i.type] = []
 
+extra = {'phone': phone_number, 'phone_ed': phone_number_ed,
+         'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
+         'pinterest': pinterest, 'categories': categories}
+
 
 def cart(request):
     if request.user.is_anonymous:
@@ -56,9 +60,7 @@ def cart(request):
 class myLoginView(auth_views.LoginView):
     next_page = 'index'
     template_name = "registration/login.html"
-    extra_context = {'title': 'RED | Login', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                     'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                     'pinterest': pinterest, 'categories': categories}
+    extra_context = {'title': 'RED | Login'} | extra
 
 
 class myLogoutView(auth_views.LogoutView):
@@ -135,10 +137,8 @@ class ChangePhotoView(View):
                 return HttpResponseRedirect('/admin/main')
             form = UploadImageForm()
             return render(request, 'admin/change-photo.html',
-                          {'form': form, 'slug': slug, 'title': 'RED | Sign Up', 'phone': phone_number,
-                           'prod': self.prod, 'phone_ed': phone_number_ed,
-                           'what': what, 'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
-                           'linkedIn': linkedIn, 'pinterest': pinterest, 'categories': categories})
+                          {'form': form, 'slug': slug, 'title': 'RED | Sign Up', 'prod': self.prod,
+                           'what': what} | extra)
         else:
             return HttpResponseRedirect('/')
 
@@ -195,10 +195,7 @@ class SignUpView(View):
             return HttpResponseRedirect('/')
         form = SignUpForm()
         return render(request, 'registration/signup.html',
-                      {'title': 'RED | Sign Up', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
-                       'linkedIn': linkedIn,
-                       'pinterest': pinterest, 'categories': categories, 'form': form})
+                      {'title': 'RED | Sign Up', 'form': form} | extra)
 
     def post(self, request):
         global form
@@ -222,11 +219,7 @@ class SignUpView(View):
         else:
             print(form.cleaned_data, form.errors)
         return render(request, 'registration/signup.html',
-                      {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
-                       'phone_ed': phone_number_ed,
-                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
-                       'linkedIn': linkedIn,
-                       'pinterest': pinterest, 'categories': categories, 'form': form})
+                      {'cart': cart(request), 'title': 'RED | Home Page', 'form': form} | extra)
 
     def check_username(self, username: str):
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@.+-_"
@@ -260,13 +253,9 @@ def MainView(request):
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
     return render(request, 'red/index.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'promos': promos,
+                  {'cart': cart(request), 'title': 'RED | Home Page', 'promos': promos,
                    'promos_width': promos_width, 'fashions': fashions, 'fashion_minis': fashion_minis,
-                   'STATIC_URL': settings.STATIC_URL, 'hot': hot, 'reviews': reviews, 'facebook': facebook,
-                   'twitter': twitter, 'linkedIn': linkedIn, 'pinterest': pinterest, 'products': products,
-                   'categories': categories})
+                   'hot': hot, 'reviews': reviews} | extra)
 
 
 def CartView(request):
@@ -276,10 +265,7 @@ def CartView(request):
             return HttpResponseRedirect('/Cart/')
 
     return render(request, 'red/cart.html',
-                  {'cart': cart(request), 'title': 'RED | Cart', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                  {'cart': cart(request), 'title': 'RED | Cart'} | extra)
 
 
 def ProdDetailsView(request, slug=None):
@@ -318,10 +304,7 @@ def ProdDetailsView(request, slug=None):
                 cart=dump)
             HttpResponseRedirect(request.get_full_path())
     return render(request, 'red/product-details.html',
-                  {'form': form, 'cart': cart(request), 'title': 'RED | ', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories, 'product': product})
+                  {'form': form, 'cart': cart(request), 'title': 'RED | ', 'product': product} | extra)
 
 
 def CheckoutView(request):
@@ -345,19 +328,13 @@ def CheckoutView(request):
     else:
         return HttpResponseRedirect('/Purchases/')
     return render(request, 'red/checkout.html',
-                  {'form': form, 'cart': cat, 'title': 'RED | Checkout Page', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                  {'form': form, 'cart': cat, 'title': 'RED | Checkout Page'} | extra)
 
 
 def PurchasesView(request):
     purchases = Purchase.objects.filter(user=request.user.id)[::-1]
     return render(request, 'red/purchases.html',
-                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Purchases', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Purchases'} | extra)
 
 
 def SubsribeView(request):
@@ -367,10 +344,7 @@ def SubsribeView(request):
                 MailingList(mail=request.GET["mail"]).save()
 
     return render(request, 'red/subscribe.html',
-                  {'cart': cart(request), 'title': 'RED | Subscribing', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                  {'cart': cart(request), 'title': 'RED | Subscribing'} | extra)
 
 
 def ShopView(request, cat=None, subcat=None):
@@ -404,11 +378,10 @@ def ShopView(request, cat=None, subcat=None):
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
     return render(request, 'red/shop.html',
-                  {'cart': cart(request), 'title': 'RED | Shop', 'phone': phone_number, 'phone_ed': phone_number_ed,
-                   'type': cat,
-                   'subtype': subcat, 'categories': categories, 'colors': colors, 'sizes': sizes,
+                  {'cart': cart(request), 'title': 'RED | Shop', 'type': cat,
+                   'subtype': subcat, 'colors': colors, 'sizes': sizes,
                    'pages': range(1, pages + 1), 'active_page': active_page,
-                   'products': products, 'STATIC_URL': settings.STATIC_URL})
+                   'products': products} | extra)
 
 
 def ContactView(request):
@@ -421,10 +394,7 @@ def ContactView(request):
     else:
         form = EmailPostForm()
     return render(request, 'red/contact.html',
-                  {'cart': cart(request), 'form': form, 'title': 'RED | Contact', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories})
+                  {'cart': cart(request), 'form': form, 'title': 'RED | Contact'} | extra)
 
 
 class SettingsView(View):
@@ -432,11 +402,7 @@ class SettingsView(View):
         form = SettingsForm(
             initial={'phone': User.objects.filter(user=request.user.id)[0].phone, 'mail': request.user.email})
         return render(request, 'red/settings.html',
-                      {'cart': cart(request), 'form': form, 'title': 'RED | Settings', 'phone': phone_number,
-                       'phone_ed': phone_number_ed,
-                       'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
-                       'linkedIn': linkedIn,
-                       'pinterest': pinterest, 'categories': categories})
+                      {'cart': cart(request), 'form': form, 'title': 'RED | Settings'} | extra)
 
     def post(self, request):
         global form
@@ -464,11 +430,7 @@ class SettingsView(View):
             return HttpResponseRedirect(request.get_full_path())
         else:
             return render(request, 'red/settings.html',
-                          {'cart': cart(request), 'form': form, 'title': 'RED | Settings', 'phone': phone_number,
-                           'phone_ed': phone_number_ed,
-                           'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter,
-                           'linkedIn': linkedIn,
-                           'pinterest': pinterest, 'categories': categories})
+                          {'cart': cart(request), 'form': form, 'title': 'RED | Settings'} | extra)
 
     def check_password(self, password: str, repeat_password: str, username: str):
         if password == repeat_password and len(password) >= 8 and (
@@ -481,17 +443,11 @@ class SettingsView(View):
 
 def err404(request, exception):
     return render(request, 'errors/404.html',
-                  {'cart': cart(request), 'title': 'RED | Error 404', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories}, status=exception
+                  {'cart': cart(request), 'title': 'RED | Error 404'} | extra, status=exception
                   )
 
 
 def err500(request, exception):
     return render(request, 'errors/500.html',
-                  {'cart': cart(request), 'title': 'RED | Error 500', 'phone': phone_number,
-                   'phone_ed': phone_number_ed,
-                   'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-                   'pinterest': pinterest, 'categories': categories}, status=exception
+                  {'cart': cart(request), 'title': 'RED | Error 500'} | extra, status=exception
                   )
