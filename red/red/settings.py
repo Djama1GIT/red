@@ -85,11 +85,18 @@ DATABASES = {
     # },
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'red2',
-        'USER': 'postgres',
-        'PASSWORD': '123456',
+        'NAME': 'red',
+        'USER': '****',
+        'PASSWORD': '****',
         'HOST': 'localhost',
         'PORT': '5432',
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
     }
 }
 
