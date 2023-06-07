@@ -371,7 +371,7 @@ def ShopView(request, cat=None, subcat=None):
         where += " and " if "WHERE " in where else "WHERE "
         where += f'color = \'{request.GET["color"]}\''
     colors = {}
-    colors_tmp = cache.get_or_set(f"{request_where}-gbcolor", Product.objects.raw(
+    colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
         f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
     for i in colors_tmp:
         colors[i.color] = i.count
