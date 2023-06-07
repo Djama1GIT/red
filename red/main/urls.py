@@ -5,7 +5,7 @@ from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView, 
 from django.views.decorators.cache import cache_page
 
 urlpatterns = [
-                  path('', cache_page(60)(MainView), name='index'),
+                  path('', MainView, name='index'),
                   path('Login/', myLoginView.as_view(), name='login'),
                   path('Logout/', myLogoutView.as_view(), name='logout'),
                   path('Sign-Up/', SignUpView.as_view(), name='signup'),

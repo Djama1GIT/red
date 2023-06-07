@@ -3,6 +3,7 @@ import random
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Q
 from django.views import View
 from django.contrib.auth import views as auth_views, authenticate
@@ -242,13 +243,13 @@ class SignUpView(View):
 
 
 def MainView(request):
-    promos = Promo.objects.filter(access="all")
-    fashions = Fashion.objects.all()
-    fashion_minis = FashionMini.objects.order_by('id')[:2]
-    hot = Hot.objects.last()
-    reviews = Review.objects.all()
+    promos = cache.get_or_set("main-promos", Promo.objects.filter(access="all"), 30)
+    fashions = cache.get_or_set("main-fashions", Fashion.objects.all(), 30)
+    fashion_minis = cache.get_or_set("main-minis", FashionMini.objects.order_by('id')[:2], 30)
+    hot = cache.get_or_set("main-hot", Hot.objects.last(), 30)
+    reviews = cache.get_or_set("main-reviews", Review.objects.all(), 30)
     promos_width = str(100 / (promos.count() + 1))
-    products = Product.objects.order_by('-id')[:6]
+    products = cache.get_or_set("main-prods", Product.objects.order_by('-id')[:6], 30)
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
@@ -273,7 +274,7 @@ def ProdDetailsView(request, slug=None):
     if slug == None:
         return err404(request, 404)
     try:
-        product = Product.objects.filter(slug=slug)[0]
+        product = cache.get_or_set(slug, Product.objects.filter(slug=slug)[0], 30)
     except Exception:
         return err404(request, 404)
     product.sizes = json.loads(product.sizes)
@@ -286,7 +287,9 @@ def ProdDetailsView(request, slug=None):
                 continue
             product.count += int(v)
         product.image = json.loads(product.image)
-        product.related = Product.objects.filter(~Q(slug=slug), type=product.type, subtype=product.subtype)[:5]
+        product.related = cache.get_or_set(f"{slug}-{product.type}-{product.subtype}",
+                                           Product.objects.filter(~Q(slug=slug), type=product.type,
+                                                                  subtype=product.subtype)[:5], 30)
         for prod in product.related:
             for k, v in json.loads(prod.image).items():
                 prod.image = k + "/" + v[0]
@@ -363,24 +366,27 @@ def ShopView(request, cat=None, subcat=None):
     request_where = where[:]
     if 'size' in request.GET:
         where += " and " if "WHERE " in where else "WHERE "
-        where += f'(sizes like \'%\'{request.GET["size"]}\'%\' or sizes like \'%\'{request.GET["size"]}\'%\')'
+        where += f'sizes LIKE \'%{request.GET["size"]}%\''
     if 'color' in request.GET:
         where += " and " if "WHERE " in where else "WHERE "
         where += f'color = \'{request.GET["color"]}\''
     colors = {}
-    colors_tmp = Product.objects.raw(
-        f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color")
+    colors_tmp = cache.get_or_set(f"{request_where}-gbcolor", Product.objects.raw(
+        f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
     for i in colors_tmp:
         colors[i.color] = i.count
     sizes = ["XS", "S", "M", "L", "XL", "XXL"]
     pages = math.ceil(
-        Product.objects.raw(f"SELECT 1 as id, count(*) as count from main_product {where}")[0].count / products_on_page)
+        cache.get_or_set(f"{where}-count",
+             Product.objects.raw(f"SELECT 1 as id, count(*) as count "
+                                 f"from main_product {where}")[0].count / products_on_page, 30))
     active_page = int(request.GET['page']) if 'page' in request.GET else 1
     if active_page > pages:
         active_page = 1
-    products = Product.objects.raw(
-        f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
-        f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}")
+    products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
+                    Product.objects.raw(
+                        f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
+                        f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
