@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth import views
-from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopListView, SubsribeView, ContactView, \
+from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopListView, SubscribeView, ContactView, \
     myLoginView, SignUpView, myLogoutView, PurchasesView, SettingsView, ChangePhotoView, EmailVerificationView
 from django.views.decorators.cache import cache_page
 
@@ -14,12 +14,12 @@ urlpatterns = [
                   path('Product-Details/<slug>', ProdDetailsView, name='product-details'),
                   path('Product-Details/', ProdDetailsView, name='product-details'),
                   path('Checkout/', CheckoutView, name='checkout'),
-                  path('Purchases/', PurchasesView, name='purchases'),
+                  path('Purchases/', PurchasesView.as_view(), name='purchases'),
                   path('Shop/<type>/<subtype>/', ShopListView.as_view()),
                   path('Shop/<type>/', ShopListView.as_view()),
                   path('Shop/', ShopListView.as_view(), name='shop'),
-                  path('Subscribe/', SubsribeView, name='subscribe'),
-                  path('Contact/', ContactView, name='contact'),
+                  path('Subscribe/', SubscribeView.as_view(), name='subscribe'),
+                  path('Contact/', ContactView.as_view(), name='contact'),
                   path('Settings/', SettingsView.as_view(), name='settings'),
                   path('admin/main/change-photo/<what>/<slug>', ChangePhotoView.as_view(), name='change-photo'),
                   path('__debug__/', include('debug_toolbar.urls')),

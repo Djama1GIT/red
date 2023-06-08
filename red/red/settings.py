@@ -70,6 +70,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.social_medias',
+                'main.context_processors.categories',
+                'main.context_processors.default',
+                'main.context_processors.cart',
             ],
         },
     },
@@ -155,7 +159,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'red@dj.ama1.ru'
-EMAIL_HOST_PASSWORD = 'u3KgukwkLRL9VCgJhnqD'
+EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

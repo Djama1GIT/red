@@ -1,68 +1,28 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.views import View
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
 from django.contrib.auth import views as auth_views, authenticate, get_user_model
 from django.contrib.auth.models import User as user
 
-from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
+from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, MailingList, \
     Comment, Purchase, UploadImage, EmailVerification
 from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm, UploadImageForm
 from .tasks import send_email_verification
 from .utils import DefaultMixin
+from .context_processors import cart
+
 import json
-
-phone_number = SocialMedia.objects.filter(social='Phone number')[0].data
-phone_number_ed = SocialMedia.objects.filter(social='Phone number ed')[0].data
-twitter = SocialMedia.objects.filter(social='Twitter')[0].data
-facebook = SocialMedia.objects.filter(social='Facebook')[0].data
-linkedIn = SocialMedia.objects.filter(social='LinkedIn')[0].data
-pinterest = SocialMedia.objects.filter(social='Pinterest')[0].data
-products_on_page = 6
-
-categories = {}
-for i in Category.objects.order_by('id').iterator():
-    if i.type in categories:
-        if i.subtype != "None":
-            categories[i.type] += [i.subtype]
-    else:
-        categories[i.type] = []
-
-extra = {'phone': phone_number, 'phone_ed': phone_number_ed,
-         'STATIC_URL': settings.STATIC_URL, 'facebook': facebook, 'twitter': twitter, 'linkedIn': linkedIn,
-         'pinterest': pinterest, 'categories': categories}
-
-
-def cart(request):
-    if request.user.is_anonymous:
-        return None
-    cat = User.objects.filter(user=request.user.id)[0].cart
-    cat = json.loads(cat)
-    _cart_ = {}
-    cart_sum = 0
-    for k, v in cat.items():
-        product = Product.objects.filter(id=int(k))[0]
-        sizes = dict(json.loads(product.sizes))
-        count_sizes = 0
-        if v in sizes.keys():
-            count_sizes = sizes[v]
-        for z, a in json.loads(product.image).items():
-            product.image = z + "/" + a[0]
-        if count_sizes > 0:
-            cart_sum += product.price
-        _cart_[product.name] = [product.price, product.image, product.slug, v, count_sizes, 1 if count_sizes > 1 else 0]
-    cart_sum = float('{:.2f}'.format(cart_sum))
-    return [_cart_, cart_sum]
 
 
 class myLoginView(auth_views.LoginView):
     next_page = 'index'
     template_name = "registration/login.html"
-    extra_context = {'title': 'RED | Login'} | extra
+    extra_context = {'title': 'RED | Login'}
 
 
 class myLogoutView(auth_views.LogoutView):
@@ -140,7 +100,7 @@ class ChangePhotoView(View):
             form = UploadImageForm()
             return render(request, 'admin/change-photo.html',
                           {'form': form, 'slug': slug, 'title': 'RED | Sign Up', 'prod': self.prod,
-                           'what': what} | extra)
+                           'what': what})
         else:
             return HttpResponseRedirect('/')
 
@@ -197,7 +157,7 @@ class SignUpView(View):
             return HttpResponseRedirect('/')
         form = SignUpForm()
         return render(request, 'registration/signup.html',
-                      {'title': 'RED | Sign Up', 'form': form} | extra)
+                      {'title': 'RED | Sign Up', 'form': form})
 
     def post(self, request):
         global form
@@ -222,7 +182,7 @@ class SignUpView(View):
         else:
             print(form.cleaned_data, form.errors)
         return render(request, 'registration/signup.html',
-                      {'cart': cart(request), 'title': 'RED | Home Page', 'form': form} | extra)
+                      {'title': 'RED | Home Page', 'form': form})
 
     def check_username(self, username: str):
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@.+-_"
@@ -264,7 +224,7 @@ class EmailVerificationView(View):
             return HttpResponseRedirect('/')
         return render(request, 'registration/email_verification.html',
                       {'title': 'RED | Email Verification',
-                       'message': message} | extra)
+                       'message': message})
 
 
 def MainView(request):
@@ -279,9 +239,9 @@ def MainView(request):
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]
     return render(request, 'red/index.html',
-                  {'cart': cart(request), 'title': 'RED | Home Page', 'promos': promos,
+                  {'title': 'RED | Home Page', 'promos': promos,
                    'promos_width': promos_width, 'fashions': fashions, 'fashion_minis': fashion_minis,
-                   'hot': hot, 'reviews': reviews} | extra)
+                   'hot': hot, 'reviews': reviews})
 
 
 def CartView(request):
@@ -292,7 +252,7 @@ def CartView(request):
             User.objects.filter(user=request.user.id).update(cart="{}")
             return HttpResponseRedirect('/Cart/')
     return render(request, 'red/cart.html',
-                  {'cart': cart(request), 'title': 'RED | Cart'} | extra)
+                  {'title': 'RED | Cart'})
 
 
 def ProdDetailsView(request, slug=None):
@@ -335,14 +295,14 @@ def ProdDetailsView(request, slug=None):
                 cart=dump)
             HttpResponseRedirect(request.get_full_path())
     return render(request, 'red/product-details.html',
-                  {'form': form, 'cart': cart(request), 'title': 'RED | ', 'product': product} | extra)
+                  {'form': form, 'title': 'RED | ', 'product': product})
 
 
 def CheckoutView(request):
     if request.user.is_anonymous:
         return HttpResponseRedirect('/')
     form = CheckoutForm(request.POST)
-    cat = cart(request)
+    cat = cart(request)['cart']
     if cat[0]:
         if form.is_valid():
             data = form.cleaned_data
@@ -361,25 +321,28 @@ def CheckoutView(request):
     else:
         return HttpResponseRedirect('/Purchases/')
     return render(request, 'red/checkout.html',
-                  {'form': form, 'cart': cat, 'title': 'RED | Checkout Page'} | extra)
+                  {'form': form, 'title': 'RED | Checkout Page'})
 
 
-def PurchasesView(request):
-    if request.user.is_anonymous:
-        return HttpResponseRedirect('/')
-    purchases = Purchase.objects.filter(user=request.user.id)[::-1]
-    return render(request, 'red/purchases.html',
-                  {'purchases': purchases, 'cart': cart(request), 'title': 'RED | Purchases'} | extra)
+class PurchasesView(DefaultMixin, TemplateView):
+    template_name = 'red/purchases.html'
+    title = 'RED | Purchases'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['purchases'] = Purchase.objects.filter(user=self.request.user.id)[::-1]
+        return context
 
 
-def SubsribeView(request):
-    if "mail" in request.GET:
-        if request.GET["mail"].strip() != "":
-            if len(MailingList.objects.filter(mail=request.GET["mail"])) == 0:
-                MailingList(mail=request.GET["mail"]).save()
+class SubscribeView(DefaultMixin, TemplateView):
+    template_name = 'red/subscribe.html'
+    title = 'RED | Subscribing'
 
-    return render(request, 'red/subscribe.html',
-                  {'cart': cart(request), 'title': 'RED | Subscribing'} | extra)
+    def get_context_data(self, **kwargs):
+        if "mail" in self.request.GET:
+            if self.request.GET["mail"].strip() != "":
+                if len(MailingList.objects.filter(mail=self.request.GET["mail"])) == 0:
+                    MailingList(mail=self.request.GET["mail"]).save()
 
 
 class ShopListView(DefaultMixin, ListView):
@@ -404,64 +367,16 @@ class ShopListView(DefaultMixin, ListView):
                 prod.image = k + "/" + v[0]
         return queryset
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data()
-        context['sizes'] = ["XS", "S", "M", "L", "XL", "XXL"]
-        return context | extra
 
+class ContactView(FormView):
+    template_name = 'red/contact.html'
+    form_class = EmailPostForm
+    success_url = '/'
 
-#
-# def ShopView(request, cat=None, subcat=None):
-#     where = ""
-#     if cat:
-#         where += f"WHERE type = '{cat}'"
-#         if subcat:
-#             where += f" and subtype = '{subcat}' "
-#     request_where = where[:]
-#     if 'size' in request.GET:
-#         where += " and " if "WHERE " in where else "WHERE "
-#         where += f'sizes LIKE \'%{request.GET["size"]}%\''
-#     if 'color' in request.GET:
-#         where += " and " if "WHERE " in where else "WHERE "
-#         where += f'color = \'{request.GET["color"]}\''
-#     colors = {}
-#     colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
-#         f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
-#     for i in colors_tmp:
-#         colors[i.color] = i.count
-#     sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-#     pages = math.ceil(
-#         cache.get_or_set(f"{where}-count",
-#              Product.objects.raw(f"SELECT 1 as id, count(*) as count "
-#                                  f"from main_product {where}")[0].count / products_on_page, 30))
-#     active_page = int(request.GET['page']) if 'page' in request.GET else 1
-#     if active_page > pages:
-#         active_page = 1
-#     products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
-#                     Product.objects.raw(
-#                         f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
-#                         f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
-#     for prod in products:
-#         for k, v in json.loads(prod.image).items():
-#             prod.image = k + "/" + v[0]
-#     return render(request, 'red/shop.html',
-#                   {'cart': cart(request), 'title': 'RED | Shop', 'type': cat,
-#                    'subtype': subcat, 'colors': colors, 'sizes': sizes,
-#                    'pages': range(1, pages + 1), 'active_page': active_page,
-#                    'products': products} | extra)
-
-
-def ContactView(request):
-    if request.method == 'POST':
-        form = EmailPostForm(request.POST)
-        if form.is_valid():
-            Comment(name=form.cleaned_data["name"], lastname=form.cleaned_data["lastname"],
-                    mail=form.cleaned_data["email"], comment=form.cleaned_data["comment"]).save()
-        return HttpResponseRedirect('/')
-    else:
-        form = EmailPostForm()
-    return render(request, 'red/contact.html',
-                  {'cart': cart(request), 'form': form, 'title': 'RED | Contact'} | extra)
+    def form_valid(self, form):
+        Comment(name=form.cleaned_data["name"], lastname=form.cleaned_data["lastname"],
+                mail=form.cleaned_data["email"], comment=form.cleaned_data["comment"]).save()
+        return super().form_valid(form)
 
 
 class SettingsView(View):
@@ -471,7 +386,7 @@ class SettingsView(View):
         form = SettingsForm(
             initial={'phone': User.objects.filter(user=request.user.id)[0].phone, 'mail': request.user.email})
         return render(request, 'red/settings.html',
-                      {'cart': cart(request), 'form': form, 'title': 'RED | Settings'} | extra)
+                      {'form': form, 'title': 'RED | Settings'})
 
     def post(self, request):
         global form
@@ -501,7 +416,7 @@ class SettingsView(View):
             return HttpResponseRedirect(request.get_full_path())
         else:
             return render(request, 'red/settings.html',
-                          {'cart': cart(request), 'form': form, 'title': 'RED | Settings'} | extra)
+                          {'form': form, 'title': 'RED | Settings'})
 
     def check_password(self, password: str, repeat_password: str, username: str):
         if password == repeat_password and len(password) >= 8 and (
@@ -513,12 +428,8 @@ class SettingsView(View):
 
 
 def err404(request, exception):
-    return render(request, 'errors/404.html',
-                  {'cart': cart(request), 'title': 'RED | Error 404'} | extra, status=exception
-                  )
+    return render(request, 'errors/404.html', {'title': 'RED | Error 404'}, status=exception)
 
 
 def err500(request, exception):
-    return render(request, 'errors/500.html',
-                  {'cart': cart(request), 'title': 'RED | Error 500'} | extra, status=exception
-                  )
+    return render(request, 'errors/500.html', {'title': 'RED | Error 500'}, status=exception)
