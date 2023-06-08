@@ -34,22 +34,35 @@
 
 # Instructions for run the project <sub>(It is assumed that you have already downloaded Python(My version - 3.10) and Postgresql.)</sub>
 1. git clone https://github.com/Djama1GIT/red.git
+
 2. pip install -r requirements.txt
+
 3. Start PostgreSQL, Redis and Celery
+
 4. Change data to connect to postgresql in /red/red/settings.py<sub>(88-92)</sub>
 <a href="https://ibb.co/hx0tTMp"><img src="https://i.ibb.co/W2pgYCz/2022-09-26-183623681.png" alt="settings" width="500px" border="0" /></a>
 
 5. Comment the same way I did it (Ctrl+Alt+L)
+
 red/main/urls.py
+
 <a href="https://ibb.co/nL8z5p1"><img src="https://i.ibb.co/SdQchyx/2022-09-26-183707849.png" alt="red/main/urls.py" width="500px" border="0" /></a>
 
 red/red/urls.py
+
 <a href="https://ibb.co/Rh6kqVH"><img src="https://i.ibb.co/7gpdq6y/2022-09-26-183654900.png" alt="red/red/urls.py" width="500px" border="0" /></a>
 
 red/main/views.py - Comment out the entire file
+
 6. Run run_server.py
+
 7. Waiting for the server to start
+
 8. Stop run_server.py
+
 9. Uncomment last changes
+
 10. Run run_server.py
+
 11. Visit the website http://localhost/
+
