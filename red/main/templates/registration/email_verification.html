@@ -1,0 +1,12 @@
+{% extends 'red/base.html' %}
+{% load static repl %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<div class="container">
+	<div class="row justify-content-center">
+		<div class="center" style="margin-bottom: 15em">
+			{{ message }}
+		</div>
+	</div>
+</div>
+{% endblock %}

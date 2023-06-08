@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, SocialMedia, Comment, Category
+from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, SocialMedia, Comment, Category, \
+    EmailVerification
 
 import json
 
@@ -49,6 +50,12 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ['user', 'phone']
     readonly_fields = ['user', 'user_login']
 
+
+@admin.register(EmailVerification)
+class EmailVerificationAdmin(admin.ModelAdmin):
+    list_display = ['code', 'user', 'expiration']
+    fields = ['code', 'user', 'expiration', 'created']
+    readonly_fields = ['created']
 
 @admin.register(Fashion)
 class FashionAdmin(admin.ModelAdmin):

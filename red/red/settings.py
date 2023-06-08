@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+DOMAIN = 'http://127.0.0.1:8000'
+
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
@@ -86,8 +88,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'red',
-        'USER': '****',
-        'PASSWORD': '****',
+        'USER': 'djamal',
+        'PASSWORD': 'supra800',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -147,3 +149,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# EMAIL
+
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'red@dj.ama1.ru'
+EMAIL_HOST_PASSWORD = 'u3KgukwkLRL9VCgJhnqD'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+# Celery
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'

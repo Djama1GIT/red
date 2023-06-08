@@ -1,19 +1,19 @@
-import random
-
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.views import View
-from django.contrib.auth import views as auth_views, authenticate
+from django.contrib.auth import views as auth_views, authenticate, get_user_model
 from django.contrib.auth.models import User as user
+
 from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Category, SocialMedia, MailingList, \
-    Comment, Purchase, UploadImage
+    Comment, Purchase, UploadImage, EmailVerification
 from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm, UploadImageForm
+from .tasks import send_email_verification
 
 import json
-import math
+
 
 phone_number = SocialMedia.objects.filter(social='Phone number')[0].data
 phone_number_ed = SocialMedia.objects.filter(social='Phone number ed')[0].data
@@ -214,6 +214,7 @@ class SignUpView(View):
                         up_user = authenticate(request, username=data["login"], password=data["passwd"])
                         User(user_login=up_user, user=up_user, phone=data["phone"]).save()
                         if up_user is not None:
+                            send_email_verification.delay(up_user.id)
                             return HttpResponseRedirect('/Login/')
                         else:
                             raise Exception('Database error')
@@ -240,6 +241,29 @@ class SignUpView(View):
         else:
             form.add_error('passwd', 'Invalid password')
             return False
+
+
+class EmailVerificationView(View):
+    def get(self, request, email, code):
+        user = get_user_model().objects.get(email=email)
+        _user = User.objects.get(user=user)
+        email_verifications = EmailVerification.objects.filter(user=user, code=code)
+        if email_verifications.exists():
+            if email_verifications.first().is_expired():
+                message = 'Срок действия ссылки истек.'
+            elif _user.is_verified_email:
+                message = 'Ссылка недействительна.'
+                print(message)
+            else:
+                _user.is_verified_email = True
+                _user.save()
+                message = 'Ваша учетная запись успешно подтверждена!'
+                print(message)
+        else:
+            return HttpResponseRedirect('/')
+        return render(request, 'registration/email_verification.html',
+                      {'title': 'RED | Email Verification',
+                       'message': message} | extra)
 
 
 def MainView(request):
@@ -358,35 +382,37 @@ def SubsribeView(request):
 
 
 def ShopView(request, cat=None, subcat=None):
-    where = ""
-    if cat:
-        where += f"WHERE type = '{cat}'"
-        if subcat:
-            where += f" and subtype = '{subcat}' "
-    request_where = where[:]
-    if 'size' in request.GET:
-        where += " and " if "WHERE " in where else "WHERE "
-        where += f'sizes LIKE \'%{request.GET["size"]}%\''
-    if 'color' in request.GET:
-        where += " and " if "WHERE " in where else "WHERE "
-        where += f'color = \'{request.GET["color"]}\''
-    colors = {}
-    colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
-        f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
-    for i in colors_tmp:
-        colors[i.color] = i.count
-    sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-    pages = math.ceil(
-        cache.get_or_set(f"{where}-count",
-             Product.objects.raw(f"SELECT 1 as id, count(*) as count "
-                                 f"from main_product {where}")[0].count / products_on_page, 30))
-    active_page = int(request.GET['page']) if 'page' in request.GET else 1
-    if active_page > pages:
-        active_page = 1
-    products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
-                    Product.objects.raw(
-                        f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
-                        f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
+    raise
+    # переписать
+    # where = ""
+    # if cat:
+    #     where += f"WHERE type = '{cat}'"
+    #     if subcat:
+    #         where += f" and subtype = '{subcat}' "
+    # request_where = where[:]
+    # if 'size' in request.GET:
+    #     where += " and " if "WHERE " in where else "WHERE "
+    #     where += f'sizes LIKE \'%{request.GET["size"]}%\''
+    # if 'color' in request.GET:
+    #     where += " and " if "WHERE " in where else "WHERE "
+    #     where += f'color = \'{request.GET["color"]}\''
+    # colors = {}
+    # colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
+    #     f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
+    # for i in colors_tmp:
+    #     colors[i.color] = i.count
+    # sizes = ["XS", "S", "M", "L", "XL", "XXL"]
+    # pages = math.ceil(
+    #     cache.get_or_set(f"{where}-count",
+    #          Product.objects.raw(f"SELECT 1 as id, count(*) as count "
+    #                              f"from main_product {where}")[0].count / products_on_page, 30))
+    # active_page = int(request.GET['page']) if 'page' in request.GET else 1
+    # if active_page > pages:
+    #     active_page = 1
+    # products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
+    #                 Product.objects.raw(
+    #                     f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
+    #                     f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
     for prod in products:
         for k, v in json.loads(prod.image).items():
             prod.image = k + "/" + v[0]

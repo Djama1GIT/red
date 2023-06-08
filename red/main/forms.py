@@ -1,6 +1,9 @@
 from django import forms
+from .models import EmailVerification
+from django.utils.timezone import now
 
-
+import uuid
+from datetime import timedelta
 class AddToCartForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

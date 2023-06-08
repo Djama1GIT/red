@@ -3,6 +3,9 @@ from django.utils.text import slugify
 from django.utils.html import mark_safe
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.utils.timezone import now
 
 import json
 
@@ -12,9 +15,32 @@ class User(models.Model):
     user = models.ForeignKey(get_user_model(), db_column="user_id", on_delete=models.CASCADE)
     phone = models.CharField('Phone number', max_length=16)
     cart = models.JSONField('Cart', null=True, default=json.dumps({}))
+    is_verified_email = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user_login
+
+
+class EmailVerification(models.Model):
+    code = models.UUIDField(unique=True)
+    user = models.ForeignKey(to=get_user_model(), on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    expiration = models.DateTimeField()
+
+    def send_verification_email(self):
+        send_mail(
+            "RED | Подтвердите адрес электронной почты",
+            f"Здравствуйте, {self.user.username}!\n"
+            f"Для подтверждения адреса вашей электронной почты({self.user.email}) перейдите по следующей ссылке:\n"
+            f"{settings.DOMAIN}{reverse('email_verification', kwargs={'email': self.user.email, 'code': self.code})}\n"
+            "Ссылка действительная в течение 24 часов.",
+            "red@dj.ama1.ru",
+            [self.user.email],
+            fail_silently=False,
+        )
+
+    def is_expired(self):
+        return True if now() >= self.expiration else False
 
 
 class Purchase(models.Model):
