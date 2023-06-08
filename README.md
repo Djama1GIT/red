@@ -64,5 +64,5 @@ red/main/views.py - Comment out the entire file
 
 10. Run run_server.py
 
-11. Visit the website http://localhost/
+11. Visit the website http://localhost:8000/
 

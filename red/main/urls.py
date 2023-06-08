@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth import views
-from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopView, SubsribeView, ContactView, \
+from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopListView, SubsribeView, ContactView, \
     myLoginView, SignUpView, myLogoutView, PurchasesView, SettingsView, ChangePhotoView, EmailVerificationView
 from django.views.decorators.cache import cache_page
 
@@ -15,9 +15,9 @@ urlpatterns = [
                   path('Product-Details/', ProdDetailsView, name='product-details'),
                   path('Checkout/', CheckoutView, name='checkout'),
                   path('Purchases/', PurchasesView, name='purchases'),
-                  path('Shop/<cat>/<subcat>/', ShopView),
-                  path('Shop/<cat>/', ShopView),
-                  path('Shop/', ShopView, name='shop'),
+                  path('Shop/<type>/<subtype>/', ShopListView.as_view()),
+                  path('Shop/<type>/', ShopListView.as_view()),
+                  path('Shop/', ShopListView.as_view(), name='shop'),
                   path('Subscribe/', SubsribeView, name='subscribe'),
                   path('Contact/', ContactView, name='contact'),
                   path('Settings/', SettingsView.as_view(), name='settings'),

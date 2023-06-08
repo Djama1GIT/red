@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.views import View
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 from django.contrib.auth import views as auth_views, authenticate, get_user_model
 from django.contrib.auth.models import User as user
 
@@ -11,9 +13,8 @@ from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, Cat
     Comment, Purchase, UploadImage, EmailVerification
 from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm, UploadImageForm
 from .tasks import send_email_verification
-
+from .utils import DefaultMixin
 import json
-
 
 phone_number = SocialMedia.objects.filter(social='Phone number')[0].data
 phone_number_ed = SocialMedia.objects.filter(social='Phone number ed')[0].data
@@ -381,46 +382,73 @@ def SubsribeView(request):
                   {'cart': cart(request), 'title': 'RED | Subscribing'} | extra)
 
 
-def ShopView(request, cat=None, subcat=None):
-    raise
-    # переписать
-    # where = ""
-    # if cat:
-    #     where += f"WHERE type = '{cat}'"
-    #     if subcat:
-    #         where += f" and subtype = '{subcat}' "
-    # request_where = where[:]
-    # if 'size' in request.GET:
-    #     where += " and " if "WHERE " in where else "WHERE "
-    #     where += f'sizes LIKE \'%{request.GET["size"]}%\''
-    # if 'color' in request.GET:
-    #     where += " and " if "WHERE " in where else "WHERE "
-    #     where += f'color = \'{request.GET["color"]}\''
-    # colors = {}
-    # colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
-    #     f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
-    # for i in colors_tmp:
-    #     colors[i.color] = i.count
-    # sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-    # pages = math.ceil(
-    #     cache.get_or_set(f"{where}-count",
-    #          Product.objects.raw(f"SELECT 1 as id, count(*) as count "
-    #                              f"from main_product {where}")[0].count / products_on_page, 30))
-    # active_page = int(request.GET['page']) if 'page' in request.GET else 1
-    # if active_page > pages:
-    #     active_page = 1
-    # products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
-    #                 Product.objects.raw(
-    #                     f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
-    #                     f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
-    for prod in products:
-        for k, v in json.loads(prod.image).items():
-            prod.image = k + "/" + v[0]
-    return render(request, 'red/shop.html',
-                  {'cart': cart(request), 'title': 'RED | Shop', 'type': cat,
-                   'subtype': subcat, 'colors': colors, 'sizes': sizes,
-                   'pages': range(1, pages + 1), 'active_page': active_page,
-                   'products': products} | extra)
+class ShopListView(DefaultMixin, ListView):
+    model = Product
+    template_name = 'red/shop.html'
+    paginate_by = 6
+    title = 'RED | Shop'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.kwargs.copy()
+
+        if color := self.request.GET.get('color'):
+            params['color'] = color
+        if size := self.request.GET.get('size'):
+            params['sizes__contains'] = size
+
+        queryset = queryset.filter(**params)
+
+        for prod in queryset:
+            for k, v in json.loads(prod.image).items():
+                prod.image = k + "/" + v[0]
+        return queryset
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data()
+        context['sizes'] = ["XS", "S", "M", "L", "XL", "XXL"]
+        return context | extra
+
+
+#
+# def ShopView(request, cat=None, subcat=None):
+#     where = ""
+#     if cat:
+#         where += f"WHERE type = '{cat}'"
+#         if subcat:
+#             where += f" and subtype = '{subcat}' "
+#     request_where = where[:]
+#     if 'size' in request.GET:
+#         where += " and " if "WHERE " in where else "WHERE "
+#         where += f'sizes LIKE \'%{request.GET["size"]}%\''
+#     if 'color' in request.GET:
+#         where += " and " if "WHERE " in where else "WHERE "
+#         where += f'color = \'{request.GET["color"]}\''
+#     colors = {}
+#     colors_tmp = cache.get_or_set(f"{request_where}-color", Product.objects.raw(
+#         f"SELECT distinct color, count(color) as count, 1 as id FROM main_product {request_where} group by color"), 30)
+#     for i in colors_tmp:
+#         colors[i.color] = i.count
+#     sizes = ["XS", "S", "M", "L", "XL", "XXL"]
+#     pages = math.ceil(
+#         cache.get_or_set(f"{where}-count",
+#              Product.objects.raw(f"SELECT 1 as id, count(*) as count "
+#                                  f"from main_product {where}")[0].count / products_on_page, 30))
+#     active_page = int(request.GET['page']) if 'page' in request.GET else 1
+#     if active_page > pages:
+#         active_page = 1
+#     products = cache.get_or_set(f"{where}-{products_on_page}-{active_page * products_on_page - products_on_page}",
+#                     Product.objects.raw(
+#                         f"SELECT id, name, price, image, type, subtype from main_product {where} ORDER BY -id LIMIT "
+#                         f"{products_on_page} OFFSET {active_page * products_on_page - products_on_page}"), 30)
+#     for prod in products:
+#         for k, v in json.loads(prod.image).items():
+#             prod.image = k + "/" + v[0]
+#     return render(request, 'red/shop.html',
+#                   {'cart': cart(request), 'title': 'RED | Shop', 'type': cat,
+#                    'subtype': subcat, 'colors': colors, 'sizes': sizes,
+#                    'pages': range(1, pages + 1), 'active_page': active_page,
+#                    'products': products} | extra)
 
 
 def ContactView(request):

@@ -1,5 +1,7 @@
 from django import template
 
+from collections import Counter
+
 register = template.Library()
 
 
@@ -19,3 +21,11 @@ def _rating(value):
     for i in range(5 - value):
         x += ['fa fa-star-o']
     return x
+
+
+@register.filter
+def colors(value):
+    colors = Counter()
+    for i in value:
+        colors[i.color] += 1
+    return [(color, count) for color, count in colors.items()]
