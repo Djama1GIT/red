@@ -6,26 +6,30 @@ from django.views import View
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
-from django.contrib.auth import views as auth_views, authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.models import User as user
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 
 from .models import Product, Promo, User, Review, Fashion, FashionMini, Hot, MailingList, \
     Comment, Purchase, UploadImage, EmailVerification
 from .forms import EmailPostForm, SignUpForm, AddToCartForm, CheckoutForm, SettingsForm, UploadImageForm
 from .tasks import send_email_verification
-from .utils import DefaultMixin
+from .utils import DefaultMixin, ValidateMixin, AnonymousRequiredMixin
 from .context_processors import cart
 
 import json
 
 
-class myLoginView(auth_views.LoginView):
+class MyLoginView(DefaultMixin, LoginView):
     next_page = 'index'
     template_name = "registration/login.html"
-    extra_context = {'title': 'RED | Login'}
+    title = 'RED | Login'
+    redirect_authenticated_user = reverse_lazy('index')
 
 
-class myLogoutView(auth_views.LogoutView):
+class MyLogoutView(LogoutView):
     next_page = 'index'
 
 
@@ -151,7 +155,7 @@ class ChangePhotoView(View):
         return str(obj.img)
 
 
-class SignUpView(View):
+class SignUpView(View, AnonymousRequiredMixin):
     def get(self, request):
         if request.user.id:
             return HttpResponseRedirect('/')
@@ -204,55 +208,55 @@ class SignUpView(View):
             return False
 
 
-class EmailVerificationView(View):
-    def get(self, request, email, code):
-        user = get_user_model().objects.get(email=email)
+class EmailVerificationView(DefaultMixin, TemplateView):
+    title = 'RED | Email Verification'
+    template_name = 'registration/email_verification.html'
+    extra_context = {}
+
+    def get(self, request, *args, **kwargs):
+        user = get_user_model().objects.get(email=kwargs.get('email'))
         _user = User.objects.get(user=user)
-        email_verifications = EmailVerification.objects.filter(user=user, code=code)
+        email_verifications = EmailVerification.objects.filter(user=user, code=kwargs.get('code'))
         if email_verifications.exists():
             if email_verifications.first().is_expired():
-                message = 'Срок действия ссылки истек.'
+                self.extra_context['message'] = 'Срок действия ссылки истек.'
             elif _user.is_verified_email:
-                message = 'Ссылка недействительна.'
-                print(message)
+                self.extra_context['message'] = 'Ссылка недействительна.'
             else:
                 _user.is_verified_email = True
                 _user.save()
-                message = 'Ваша учетная запись успешно подтверждена!'
-                print(message)
+                self.extra_context['message'] = 'Ваша учетная запись успешно подтверждена!'
         else:
             return HttpResponseRedirect('/')
-        return render(request, 'registration/email_verification.html',
-                      {'title': 'RED | Email Verification',
-                       'message': message})
+        return super().get(request, *args, **kwargs)
 
 
-def MainView(request):
-    promos = cache.get_or_set("main-promos", Promo.objects.filter(access="all"), 30)
-    fashions = cache.get_or_set("main-fashions", Fashion.objects.all(), 30)
-    fashion_minis = cache.get_or_set("main-minis", FashionMini.objects.order_by('id')[:2], 30)
-    hot = cache.get_or_set("main-hot", Hot.objects.last(), 30)
-    reviews = cache.get_or_set("main-reviews", Review.objects.all(), 30)
-    promos_width = str(100 / (promos.count() + 1))
-    products = cache.get_or_set("main-prods", Product.objects.order_by('-id')[:6], 30)
-    for prod in products:
-        for k, v in json.loads(prod.image).items():
-            prod.image = k + "/" + v[0]
-    return render(request, 'red/index.html',
-                  {'title': 'RED | Home Page', 'promos': promos,
-                   'promos_width': promos_width, 'fashions': fashions, 'fashion_minis': fashion_minis,
-                   'hot': hot, 'reviews': reviews})
 
 
-def CartView(request):
-    if request.user.is_anonymous:
-        return HttpResponseRedirect('/')
-    if "clear" in request.GET:
-        if request.GET["clear"] == "True" and request.user.username:
+class MainView(DefaultMixin, TemplateView):
+    title = 'RED | Home Page'
+    template_name = 'red/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['promos'] = cache.get_or_set("main-promos", Promo.objects.filter(access="all"), 30)
+        context['fashions'] = cache.get_or_set("main-fashions", Fashion.objects.all(), 30)
+        context['fashion_minis'] = cache.get_or_set("main-minis", FashionMini.objects.order_by('id')[:2], 30)
+        context['hot'] = cache.get_or_set("main-hot", Hot.objects.last(), 30)
+        context['reviews'] = cache.get_or_set("main-reviews", Review.objects.all(), 30)
+        context['promos_width'] = str(100 / (context['promos'].count() + 1))
+        return context
+
+
+class CartView(DefaultMixin, LoginRequiredMixin, TemplateView):
+    template_name = 'red/cart.html'
+    title = 'RED | Cart'
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('clear') == "True" and request.user.username:
             User.objects.filter(user=request.user.id).update(cart="{}")
-            return HttpResponseRedirect('/Cart/')
-    return render(request, 'red/cart.html',
-                  {'title': 'RED | Cart'})
+            return HttpResponseRedirect(reverse_lazy('cart'))
+        return super().get(request, *args, **kwargs)
 
 
 def ProdDetailsView(request, slug=None):
@@ -298,37 +302,53 @@ def ProdDetailsView(request, slug=None):
                   {'form': form, 'title': 'RED | ', 'product': product})
 
 
-def CheckoutView(request):
-    if request.user.is_anonymous:
-        return HttpResponseRedirect('/')
-    form = CheckoutForm(request.POST)
-    cat = cart(request)['cart']
-    if cat[0]:
-        if form.is_valid():
+class CheckoutView(DefaultMixin, LoginRequiredMixin, FormView):
+    form_class = CheckoutForm
+    template_name = 'red/checkout.html'
+    title = 'RED | Checkout'
+    success_url = reverse_lazy('shop')
+    login_url = reverse_lazy('login')
+    redirect_field_name = ''
+
+    def form_valid(self, form):
+        cart = json.loads(User.objects.filter(user=self.request.user.id)[0].cart)
+        _cart = {}
+        for id, size in cart.items():
+            product = Product.objects.filter(id=int(id))[0]
+            sizes = dict(json.loads(product.sizes))
+            count_sizes = 0
+            if size in sizes.keys():
+                count_sizes = sizes[size]
+            for folder, images in json.loads(product.image).items():
+                product.image = folder + "/" + images[0]
+            _cart[product.name] = [product.price, product.image,
+                                   product.slug, size, count_sizes, 1 if count_sizes > 1 else 0]
+
+        if _cart:
             data = form.cleaned_data
-            for k, v in cat[0].items():
-                new_sizes = json.loads(Product.objects.filter(slug=v[2])[0].sizes)
-                if v[3] in new_sizes:
-                    if new_sizes[v[3]] > 0:
-                        Purchase(user_login=request.user.username, user=request.user, first_name=data['first_name'],
-                                 last_name=data['last_name'], country=data['country'], address=data['address'],
-                                 postcode=data['postcode'], city=data['city'], province=data['province'],
-                                 product=k, size=v[3], price=v[0], slug=v[2], image=v[1]).save()
-                        new_sizes[v[3]] -= 1
-                        Product.objects.filter(slug=v[2]).update(sizes=json.dumps(new_sizes))
-            User.objects.filter(user=request.user.id).update(cart="{}")
-            return HttpResponseRedirect('/Shop/')
-    else:
-        return HttpResponseRedirect('/Purchases/')
-    return render(request, 'red/checkout.html',
-                  {'form': form, 'title': 'RED | Checkout Page'})
+            for name, attrs in _cart.items():
+                print(attrs)
+                new_sizes = json.loads(Product.objects.filter(slug=attrs[2])[0].sizes)
+                if attrs[3] in new_sizes:
+                    if new_sizes[attrs[3]] > 0:
+                        Purchase(user_login=self.request.user.username, user=self.request.user,
+                                 first_name=data['first_name'], last_name=data['last_name'], country=data['country'],
+                                 address=data['address'], postcode=data['postcode'], city=data['city'],
+                                 province=data['province'], product=name, size=attrs[3], price=attrs[0], slug=attrs[2],
+                                 image=attrs[1]).save()
+                        new_sizes[attrs[3]] -= 1
+                        Product.objects.filter(slug=attrs[2]).update(sizes=json.dumps(new_sizes))
+            User.objects.filter(user=self.request.user.id).update(cart="{}")
+            return HttpResponseRedirect(reverse_lazy('shop'))
+        else:
+            return HttpResponseRedirect(reverse_lazy('purchases'))
 
 
 class PurchasesView(DefaultMixin, TemplateView):
     template_name = 'red/purchases.html'
     title = 'RED | Purchases'
 
-    def get_context_data(self, *, object_list=None, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['purchases'] = Purchase.objects.filter(user=self.request.user.id)[::-1]
         return context
@@ -339,10 +359,9 @@ class SubscribeView(DefaultMixin, TemplateView):
     title = 'RED | Subscribing'
 
     def get_context_data(self, **kwargs):
-        if "mail" in self.request.GET:
-            if self.request.GET["mail"].strip() != "":
-                if len(MailingList.objects.filter(mail=self.request.GET["mail"])) == 0:
-                    MailingList(mail=self.request.GET["mail"]).save()
+        if self.request.GET.get('mail').strip():
+            if len(MailingList.objects.filter(mail=self.request.GET.get('mail'))) == 0:
+                MailingList(mail=self.request.GET.get('mail')).save()
 
 
 class ShopListView(DefaultMixin, ListView):
@@ -363,8 +382,8 @@ class ShopListView(DefaultMixin, ListView):
         queryset = queryset.filter(**params)
 
         for prod in queryset:
-            for k, v in json.loads(prod.image).items():
-                prod.image = k + "/" + v[0]
+            for folder, images in json.loads(prod.image).items():
+                prod.image = folder + "/" + images[0]
         return queryset
 
 
@@ -379,52 +398,24 @@ class ContactView(FormView):
         return super().form_valid(form)
 
 
-class SettingsView(View):
-    def get(self, request):
-        if request.user.is_anonymous:
-            return HttpResponseRedirect('/')
-        form = SettingsForm(
-            initial={'phone': User.objects.filter(user=request.user.id)[0].phone, 'mail': request.user.email})
-        return render(request, 'red/settings.html',
-                      {'form': form, 'title': 'RED | Settings'})
+class SettingsView(DefaultMixin, LoginRequiredMixin, FormView):
+    form_class = SettingsForm
+    title = 'RED | Settings'
+    template_name = 'red/settings.html'
+    success_url = reverse_lazy('settings')
+    login_url = reverse_lazy('login')
+    redirect_field_name = ''
 
-    def post(self, request):
-        global form
-        if request.user.is_anonymous:
-            return HttpResponseRedirect('/')
-        red = False
-        form = SettingsForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            if (data['mail'] != user.objects.filter(username=request.user.username)[0].email) and data['mail']:
-                red = True
-                user.objects.filter(username=request.user.username).update(email=data['mail'])
-            if (data['phone'] != int(User.objects.filter(user=request.user.id)[0].phone)) and data['phone']:
-                red = True
-                User.objects.filter(user=request.user.id).update(phone=data['phone'])
-            if data['old']:
-                au = authenticate(request, username=request.user.username, password=data["old"])
-                if au:
-                    if self.check_password(data['passwd'], data['repeat_passwd'], request.user.username):
-                        s = user.objects.get(username=request.user.username)
-                        s.set_password(str(data['passwd'].strip()))
-                        s.save()
-                        return HttpResponseRedirect('/Login/')
-                else:
-                    form.add_error('old', 'Incorrect password')
-        if red:
-            return HttpResponseRedirect(request.get_full_path())
-        else:
-            return render(request, 'red/settings.html',
-                          {'form': form, 'title': 'RED | Settings'})
+    def get_initial(self):
+        return {
+            'phone': User.objects.filter(user=self.request.user.id)[0].phone,
+            'mail': self.request.user.email
+        }
 
-    def check_password(self, password: str, repeat_password: str, username: str):
-        if password == repeat_password and len(password) >= 8 and (
-                not password.isnumeric()) and username != password:
-            return True
-        else:
-            form.add_error('passwd', 'Invalid password')
-            return False
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
 
 def err404(request, exception):

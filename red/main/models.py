@@ -126,7 +126,6 @@ class UploadImage(models.Model):
     img = models.ImageField(upload_to="red/main/static/img/product-img")
 
 
-
 class Fashion(models.Model):
     name = models.CharField('name', max_length=32)
     description = models.CharField('description', max_length=64)

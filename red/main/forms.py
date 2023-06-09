@@ -1,9 +1,12 @@
 from django import forms
-from .models import EmailVerification
-from django.utils.timezone import now
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User as user
+from django.urls import reverse_lazy
 
-import uuid
-from datetime import timedelta
+from .models import User
+from .utils import ValidateMixin
+
+
 class AddToCartForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,7 +41,11 @@ class CheckoutForm(forms.Form):
     province = forms.CharField(widget=forms.TextInput(), max_length=48)
 
 
-class SettingsForm(forms.Form):
+class SettingsForm(ValidateMixin, forms.Form):
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
     mail = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Enter email'}), max_length=56,
                             required=False)
     phone = forms.IntegerField(widget=forms.NumberInput(attrs={'placeholder': 'Enter Phone number'}),
@@ -49,6 +56,28 @@ class SettingsForm(forms.Form):
                              min_length=8, max_length=48, required=False)
     repeat_passwd = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'}),
                                     min_length=8, max_length=48, required=False)
+
+    def is_valid(self):
+        if self.data.get('mail') and \
+                self.data.get('mail') != user.objects.filter(username=self.request.user.username)[0].email:
+            user.objects.filter(username=self.request.user.username).update(email=self.data.get('mail'))
+
+        if self.data.get('phone') and \
+                self.data.get('phone') != int(User.objects.filter(user=self.request.user.id)[0].phone):
+            User.objects.filter(user=self.request.user.id).update(phone=self.data.get('phone'))
+
+        if self.data.get('old'):
+            if authenticate(self.request, username=self.request.user.username, password=self.data.get('old')):
+                if self.check_password(self.data.get('passwd'), self.data.get('repeat_passwd'),
+                                       self.request.user.username):
+                    _user = user.objects.get(username=self.request.user.username)
+                    _user.set_password(str(self.data.get('passwd')).strip())
+                    _user.save()
+                else:
+                    self.add_error('passwd', 'Invalid new password')
+            else:
+                self.add_error('old', 'Incorrect password')
+        return super().is_valid()
 
 
 class UploadImageForm(forms.Form):

@@ -1,19 +1,17 @@
 from django.urls import path, include
-from django.contrib.auth import views
 from .views import MainView, CartView, CheckoutView, ProdDetailsView, ShopListView, SubscribeView, ContactView, \
-    myLoginView, SignUpView, myLogoutView, PurchasesView, SettingsView, ChangePhotoView, EmailVerificationView
-from django.views.decorators.cache import cache_page
+    MyLoginView, SignUpView, MyLogoutView, PurchasesView, SettingsView, ChangePhotoView, EmailVerificationView
 
 urlpatterns = [
-                  path('', MainView, name='index'),
-                  path('Login/', myLoginView.as_view(), name='login'),
-                  path('Logout/', myLogoutView.as_view(), name='logout'),
+                  path('', MainView.as_view(), name='index'),
+                  path('Login/', MyLoginView.as_view(), name='login'),
+                  path('Logout/', MyLogoutView.as_view(), name='logout'),
                   path('Sign-Up/', SignUpView.as_view(), name='signup'),
                   path('Verify/<email>/<uuid:code>', EmailVerificationView.as_view(), name='email_verification'),
-                  path('Cart/', CartView, name='cart'),
+                  path('Cart/', CartView.as_view(), name='cart'),
                   path('Product-Details/<slug>', ProdDetailsView, name='product-details'),
                   path('Product-Details/', ProdDetailsView, name='product-details'),
-                  path('Checkout/', CheckoutView, name='checkout'),
+                  path('Checkout/', CheckoutView.as_view(), name='checkout'),
                   path('Purchases/', PurchasesView.as_view(), name='purchases'),
                   path('Shop/<type>/<subtype>/', ShopListView.as_view()),
                   path('Shop/<type>/', ShopListView.as_view()),
