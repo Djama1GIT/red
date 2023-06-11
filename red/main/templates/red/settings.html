@@ -20,7 +20,7 @@
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label>Email</label>
-                                        {{ form.mail }}
+                                        {{ form.email }}
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label>Phone number</label>
@@ -31,13 +31,13 @@
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label>Enter old password</label>
-                                        {{ form.old }}
-                                        {{ form.old.errors }}
+                                        {{ form.old_password }}
+                                        {{ form.old_password.errors }}
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label>Enter new password</label>
-                                        {{ form.passwd }}
-                                        {{ form.passwd.errors }}
+                                        {{ form.new_password }}
+                                        {{ form.new_password.errors }}
                                         Your password can’t be too similar to your other personal information. <br>
                                         Your password must contain at least 8 characters. <br>
                                         Your password can’t be a commonly used password. <br>
@@ -45,7 +45,7 @@
                                     </div>
                                     <div class="col-12 mb-3">
                                         <label>Confirm new password</label>
-                                        {{ form.repeat_passwd }}
+                                        {{ form.confirm_new_password }}
                                     </div>
                                 </div>
                                 <div class="row col-12 mb-50">

@@ -24,7 +24,7 @@
 		<div class="form-group row">
 			<label class="col-form-label col-4">Email Address</label>
 			<div class="col-8">
-                {{ form.mail }}
+                {{ form.email }}
             </div>
         </div>
 		<div class="form-group row">
@@ -36,10 +36,10 @@
 		<div class="form-group row">
 			<label class="col-form-label col-4">Password</label>
 			<div class="col-8">
-                {{ form.passwd }}
+                {{ form.password }}
             </div>
 			<small>
-				{{ form.passwd.errors }}
+				{{ form.password.errors }}
 				Your password can’t be too similar to your other personal information. <br>
 				Your password must contain at least 8 characters. <br>
 				Your password can’t be a commonly used password. <br>
@@ -49,7 +49,7 @@
 		<div class="form-group row">
 			<label class="col-form-label col-4">Confirm Password</label>
 			<div class="col-8">
-                {{ form.repeat_passwd }}
+                {{ form.confirm_password }}
             </div>
         </div>
 		<div class="form-group row">

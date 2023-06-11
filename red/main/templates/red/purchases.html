@@ -23,7 +23,7 @@
                                         {% for i in purchases %}
                                             <tr>
                                                 <td class="cart_product_img d-flex align-items-center">
-                                                    <a href="{% url 'product-details' %}{{ i.slug }}"><img src="{{ STATIC_URL}}{{ i.image }}" alt="Product"></a>
+                                                    <a href="{% url 'product-details' i.slug %}"><img src="{{ STATIC_URL}}{{ i.image }}" alt="Product"></a>
                                                     <h6>{{ i.product }} ({{ i.size }}) | Purchased {{ i.datetime }}</h6>
                                                 </td>
                                                 <td class="price"><span>${{ i.price }}</span></td>

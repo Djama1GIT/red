@@ -44,7 +44,8 @@
 .contact-form button:focus{
     box-shadow:none;
 }
-#id_name, #id_lastname, #id_mail, #id_email, #id_old, #id_phone, #id_comment, #id_username, #id_login, #id_passwd, #id_password, #id_repeat_passwd{
+#id_name, #id_lastname, #id_mail, #id_email, #id_old_password, #id_phone, #id_comment, #id_username,
+#id_login, #id_new_password, #id_password, #id_confirm_new_password, #id_confirm_password{
     display:block;
     width:100%;
     padding:.375rem .75rem;

@@ -75,10 +75,10 @@
                                                 {% if cart.0 %}
                                                     {% for v, i in cart.0.items %}
                                                         <li>
-                                                            <a href="{% url 'product-details' %}{{ i.2 }}" class="image"><img src="{{ STATIC_URL}}{{ i.1 }}" class="cart-thumb" alt=""></a>
+                                                            <a href="{% url 'product-details' i.2%}" class="image"><img src="{{ STATIC_URL}}{{ i.1 }}" class="cart-thumb" alt=""></a>
                                                             <div class="cart-item-desc">
                                                                 <h6>
-                                                                    <a href="{% url 'product-details' %}{{ i.2 }}">{{ v }} ({{ i.3 }})</a>
+                                                                    <a href="{% url 'product-details' i.2 %}">{{ v }} ({{ i.3 }})</a>
                                                                     {% if i.4 < 1 %}
                                                                     <div class="a-red small-text">The product is over!</div>
                                                                     {% endif %}

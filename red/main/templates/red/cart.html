@@ -24,7 +24,7 @@
                                             {% for k, v in cart.0.items %}
                                                 <tr>
                                                     <td class="cart_product_img d-flex align-items-center">
-                                                        <a href="{% url 'product-details' %}{{ v.2 }}"><img src="{{ STATIC_URL}}{{ v.1 }}" alt="Product"></a>
+                                                        <a href="{% url 'product-details' v.2 %}"><img src="{{ STATIC_URL}}{{ v.1 }}" alt="Product"></a>
                                                         <div>
                                                             <h6>{{ k }} ({{ v.3 }})</h6>
                                                             {% if v.4 < 1 %}
