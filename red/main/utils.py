@@ -17,7 +17,7 @@ class ValidateMixin:
     @staticmethod
     def check_password(password: str, repeat_password: str, username: str):
         return password == repeat_password and len(password) >= 8 and (
-                not password.isnumeric()) and username != password
+            not password.isnumeric()) and username != password
 
     @staticmethod
     def check_username(username: str):
@@ -51,4 +51,3 @@ class FormWithRequestMixin:
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = request
-
