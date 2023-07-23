@@ -10,7 +10,7 @@ RED is a project based on Django.
 
 ```bash
 git clone https://github.com/Djama1GIT/red.git
-cd green
+cd red
 ```
 
 3. Configure environment variables in the .env file (not required if you don't plan to use email functionality).
