@@ -1,0 +1,61 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    container_name: red_db
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+#    volumes:
+#      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: red_redis
+    restart: always
+    env_file:
+      - .env
+#    volumes:
+#      - redis_data:/app/data
+
+  web:
+    build: .
+    container_name: red_server
+    command: sh -c "python manage.py migrate &&
+                    python manage.py loaddata dump.json &&
+                    python manage.py collectstatic --noinput &&
+                    gunicorn red.wsgi:application --bind 0.0.0.0:8000 --workers 4"
+    ports:
+      - 8000:8000
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+#    volumes:
+#      - web_data:/app/data
+
+
+  celery:
+    build:
+      context: .
+    container_name: red_celery
+    command: sh -c "celery -A red worker -l INFO"
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+#    volumes:
+#      - celery_data:/app/data
+
+
+#volumes:
+#  db_data:
+#  redis_data:
+#  web_data:
+#  celery_data:
