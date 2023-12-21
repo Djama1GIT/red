@@ -83,7 +83,7 @@
                                     </div>
                                     <br>
                                     <!-- Add to Cart Form -->
-                                    {% if product.count > 0 %}
+                                    {% if product.count > 0 and request.user.is_authenticated %}
                                         <button type="submit" name="addtocart" class="btn cart-submit d-block">Add to cart</button>
                                     {% endif %}
                                 </div>
